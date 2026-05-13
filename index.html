@@ -163,7 +163,7 @@
   main { padding: 24px 32px 48px 32px; max-width: 1500px; margin: 0 auto; }
   .stats {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin-bottom: 20px;
   }
@@ -971,17 +971,13 @@ function renderStats() {
   });
 
   const active = state.products.filter(p => p.section === "active");
-  const completed = state.products.filter(p => p.section === "completed");
   const avgPct = active.length ? Math.round(active.reduce((s, p) => s + (p.statusPct || 0), 0) / active.length) : 0;
-  const totalCost = active.reduce((s, p) => s + (p.cost || 0), 0);
-  const totalCostCompleted = completed.reduce((s, p) => s + (p.cost || 0), 0);
   const cards = [
     { label: "Active",      value: counts.active },
     { label: "Completed",   value: counts.completed },
     { label: "Rejected",    value: counts.rejected },
     { label: "Back Burner", value: counts.backburner },
-    { label: "Avg % Active",value: avgPct + "%" },
-    { label: "Active Spend",value: fmtMoney(totalCost) }
+    { label: "Avg % Active",value: avgPct + "%" }
   ];
   document.getElementById("statCards").innerHTML = cards.map(c =>
     `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`
