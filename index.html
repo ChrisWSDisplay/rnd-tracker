@@ -98,6 +98,38 @@
     letter-spacing: 0;
   }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    color: var(--muted);
+    margin-right: 4px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .live-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted-soft);
+  }
+  .live-badge[data-status="live"]       { color: var(--green); border-color: #b8e6c8; background: var(--green-soft); }
+  .live-badge[data-status="live"]::before { background: var(--green); animation: pulse 2s ease-in-out infinite; }
+  .live-badge[data-status="connecting"] { color: var(--amber); border-color: #f4d889; background: var(--amber-soft); }
+  .live-badge[data-status="connecting"]::before { background: var(--amber); animation: pulse 1s ease-in-out infinite; }
+  .live-badge[data-status="offline"]    { color: var(--red); border-color: #f4cbcb; background: var(--red-soft); }
+  .live-badge[data-status="offline"]::before { background: var(--red); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+    50% { opacity: .55; }
+  }
   .btn {
     background: #fff;
     border: 1px solid var(--border-strong);
@@ -482,6 +514,7 @@
     <h1>Product R&amp;D Tracker<span class="sub">WS Display &middot; 2026</span></h1>
   </div>
   <div class="actions">
+    <span class="live-badge" id="liveBadge" data-status="connecting">Connecting…</span>
     <button class="btn primary" id="addBtn">
       <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Product
@@ -527,7 +560,7 @@
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input class="search-box" id="search" type="search" placeholder="Search products or comments…" />
     </div>
-    <div class="hint">Data is auto-saved in this browser. Export regularly for backup.</div>
+    <div class="hint">Changes save to the shared database instantly — everyone sees updates in real time.</div>
   </div>
 
   <table class="products">
@@ -632,7 +665,33 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
+  getDocs, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+// ===== Firebase init =====
+const firebaseConfig = {
+  apiKey: "AIzaSyB2mPZZQxQQjkF8AD66bwcW_YnyiN4jilI",
+  authDomain: "rnd-tracker-b6426.firebaseapp.com",
+  projectId: "rnd-tracker-b6426",
+  storageBucket: "rnd-tracker-b6426.firebasestorage.app",
+  messagingSenderId: "433153184139",
+  appId: "1:433153184139:web:0fb1f7fce822e930f5df8e"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const productsCol = collection(db, "products");
+
+function setLive(status) {
+  const el = document.getElementById("liveBadge");
+  if (!el) return;
+  el.dataset.status = status;
+  el.textContent = status === "live" ? "Live" : status === "connecting" ? "Connecting…" : "Offline";
+}
+
 // ===== Status list with completion % (from WS Display "Data Validation" sheet) =====
 const STATUSES = [
   { pct: 1,   label: "New Product Development Stages" },
@@ -725,25 +784,16 @@ const SECTION_LABEL = {
 };
 const CHANNELS = ["China", "WS MFG", "WS Config"];
 
-// ===== Persistence =====
-const STORAGE_KEY = "wsd_rnd_tracker_v1";
+// ===== State (mirrors Firestore, kept in memory) =====
 let state = { products: [], activeSection: "active", search: "" };
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.products)) {
-        state.products = parsed.products;
-      }
-    }
-  } catch (e) { console.warn("Could not load state", e); }
-}
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ products: state.products }));
-}
 function uid() { return "p_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+
+async function saveProduct(p) {
+  await setDoc(doc(productsCol, p.id), p);
+}
+async function deleteProductRemote(id) {
+  await deleteDoc(doc(productsCol, id));
+}
 
 // ===== Populate status dropdown =====
 function populateStatusDropdown() {
@@ -784,7 +834,7 @@ document.getElementById("addBtn").addEventListener("click", () => openModal(null
 document.getElementById("cancelBtn").addEventListener("click", closeModal);
 overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
-form.addEventListener("submit", (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const id = document.getElementById("f-id").value || uid();
   const pct = parseInt(document.getElementById("f-status").value, 10);
@@ -805,21 +855,25 @@ form.addEventListener("submit", (e) => {
     dateAdded: existing?.dateAdded || now,
     dateUpdated: now
   };
-  if (existing) Object.assign(existing, data);
-  else state.products.push(data);
-  saveState();
-  closeModal();
-  render();
+  try {
+    await saveProduct(data);
+    closeModal();
+    // onSnapshot listener will re-render automatically
+  } catch (err) {
+    alert("Could not save: " + err.message);
+  }
 });
 
-deleteBtn.addEventListener("click", () => {
+deleteBtn.addEventListener("click", async () => {
   const id = document.getElementById("f-id").value;
   if (!id) return;
   if (!confirm("Delete this product permanently?")) return;
-  state.products = state.products.filter(p => p.id !== id);
-  saveState();
-  closeModal();
-  render();
+  try {
+    await deleteProductRemote(id);
+    closeModal();
+  } catch (err) {
+    alert("Could not delete: " + err.message);
+  }
 });
 
 // ===== Tabs =====
@@ -858,10 +912,24 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
     const text = await file.text();
     const parsed = JSON.parse(text);
     if (!parsed.products || !Array.isArray(parsed.products)) throw new Error("Invalid file");
-    if (!confirm(`Import ${parsed.products.length} products? This replaces current data.`)) return;
-    state.products = parsed.products;
-    saveState();
-    render();
+    if (!confirm(`Import ${parsed.products.length} products? This REPLACES the live data — everyone will see the change.`)) return;
+    // Wipe existing collection, then write new in batches (Firestore batch limit = 500 ops)
+    const existing = await getDocs(productsCol);
+    const ops = [];
+    existing.forEach(d => ops.push({ type: "delete", ref: d.ref }));
+    parsed.products.forEach(p => {
+      const id = p.id || uid();
+      ops.push({ type: "set", ref: doc(productsCol, id), data: { ...p, id } });
+    });
+    // chunk into batches of 450
+    for (let i = 0; i < ops.length; i += 450) {
+      const batch = writeBatch(db);
+      ops.slice(i, i + 450).forEach(op => {
+        if (op.type === "delete") batch.delete(op.ref);
+        else batch.set(op.ref, op.data);
+      });
+      await batch.commit();
+    }
   } catch (err) {
     alert("Could not import: " + err.message);
   }
@@ -1055,17 +1123,18 @@ function renderTable() {
   }
 
   tbody.querySelectorAll("button[data-action]").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const id = btn.dataset.id;
       const product = state.products.find(p => p.id === id);
       if (!product) return;
       if (btn.dataset.action === "edit") {
         openModal(product);
       } else if (btn.dataset.action === "move") {
-        product.section = btn.dataset.target;
-        product.dateUpdated = new Date().toISOString();
-        saveState();
-        render();
+        try {
+          await saveProduct({ ...product, section: btn.dataset.target, dateUpdated: new Date().toISOString() });
+        } catch (err) {
+          alert("Could not move: " + err.message);
+        }
       }
     });
   });
@@ -1085,10 +1154,9 @@ function render() {
 
 // ===== Init =====
 populateStatusDropdown();
-loadState();
 
-// Seed with full 2026 data on first run. Each product carries a manualGroup matching where it lived in the spreadsheet.
-if (state.products.length === 0) {
+// Seed factory — used only when Firestore collection is empty (first deployment).
+function buildSeed() {
   const now = new Date().toISOString();
   const mk = (name, rdChannel, testLocation, pct, statusLabel, cost, comments, manualGroup) => ({
     id: uid(), name, rdChannel, testLocation, section: "active",
@@ -1096,7 +1164,7 @@ if (state.products.length === 0) {
     cost: cost || 0, comments: comments || "",
     dateAdded: now, dateUpdated: now
   });
-  state.products = [
+  return [
     mk("CAS-BRZ-WALL13", "China", "CA", 95, "Soft Launch on Website", 0, "ETA 4/1/26", "web_ready"),
     mk("EZ Arrow 8ft", "WS MFG", "MX", 79, "Create Specs", 0, "", "web_ready"),
     mk("EZT6STRTT", "WS MFG", "MX", 79, "Create Specs", 0, "", "web_ready"),
@@ -1148,10 +1216,35 @@ if (state.products.length === 0) {
     mk("5ft Storage with shelves into return wall. (10ft backwall with storage and shelves)", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
     mk("Origami Arch Bridge", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending")
   ];
-  saveState();
 }
 
-render();
+async function bootstrap() {
+  setLive("connecting");
+  try {
+    // If the collection is empty, seed it once.
+    const initial = await getDocs(productsCol);
+    if (initial.empty) {
+      const batch = writeBatch(db);
+      buildSeed().forEach(p => batch.set(doc(productsCol, p.id), p));
+      await batch.commit();
+    }
+    // Real-time listener — fires on every remote change.
+    onSnapshot(productsCol, (snap) => {
+      state.products = snap.docs.map(d => d.data());
+      render();
+      setLive("live");
+    }, (err) => {
+      console.error("Firestore listener error:", err);
+      setLive("offline");
+    });
+  } catch (err) {
+    console.error("Bootstrap failed:", err);
+    setLive("offline");
+    alert("Could not connect to the database. Check your network or Firebase rules.\n\n" + err.message);
+  }
+}
+
+bootstrap();
 </script>
 </body>
 </html>
