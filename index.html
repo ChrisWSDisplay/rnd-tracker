@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WS Display — Product R&D Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --bg-pattern: radial-gradient(circle at 1px 1px, rgba(60,70,90,.05) 1px, transparent 0);
+    --card: #ffffff;
+    --border: #e6e9f0;
+    --border-strong: #d6dbe5;
+    --text: #0f172a;
+    --muted: #64748b;
+    --muted-soft: #94a3b8;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: #eff4ff;
+    --accent-border: #cfdcfb;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --amber: #d97706;
+    --amber-soft: #fef3c7;
+    --red: #dc2626;
+    --red-soft: #fee2e2;
+    --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.04);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    background-image: var(--bg-pattern);
+    background-size: 24px 24px;
+    color: var(--text);
+    font-size: 13.5px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  header.top {
+    background: #ffffff;
+    background-image: linear-gradient(to bottom, #ffffff 0%, #fafbfd 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: saturate(180%) blur(10px);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    box-shadow: 0 2px 6px rgba(37,99,235,.3);
+  }
+  header.top h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  header.top h1 .sub {
+    display: block;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 2px;
+    letter-spacing: 0;
+  }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 7px 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-xs);
+    line-height: 1;
+  }
+  .btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .btn:hover { background: #f8fafc; border-color: #b8c2d3; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn:active { transform: translateY(0); }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 1px 3px rgba(37,99,235,.3);
+  }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.danger { color: var(--red); border-color: #f4cbcb; }
+  .btn.danger:hover { background: var(--red-soft); border-color: #ecb4b4; }
+  .btn.small { padding: 4px 9px; font-size: 12px; }
+  main { padding: 24px 32px 48px 32px; max-width: 1500px; margin: 0 auto; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 1024px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .stat-card .label {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+  }
+  .stat-card .value {
+    font-size: 26px;
+    font-weight: 600;
+    margin-top: 4px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .charts {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .chart-card h3 {
+    margin: 0 0 14px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .chart-card .chart-wrap {
+    position: relative;
+    height: 240px;
+  }
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 14px;
+    background: #eef1f7;
+    padding: 4px;
+    border-radius: 8px;
+    width: fit-content;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--muted);
+    border-radius: 6px;
+    transition: all .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--text);
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  .tab .count {
+    display: inline-block;
+    background: rgba(100,116,139,.12);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 11px;
+    margin-left: 6px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tab.active .count {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    stroke: var(--muted-soft);
+    stroke-width: 2;
+    fill: none;
+    pointer-events: none;
+  }
+  .search-box {
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px 8px 32px;
+    font-size: 13px;
+    font-family: inherit;
+    min-width: 260px;
+    color: var(--text);
+    box-shadow: var(--shadow-xs);
+    transition: all .15s;
+  }
+  .search-box:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  table.products {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  table.products th {
+    background: #f9fafc;
+    text-align: left;
+    padding: 11px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  table.products td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-size: 13px;
+  }
+  table.products tr:last-child td { border-bottom: none; }
+  table.products tbody tr.product-row { transition: background .12s; }
+  table.products tbody tr.product-row:hover td { background: #f9fafc; }
+  .product-name {
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .product-name .date {
+    display: block;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 11px;
+    margin-top: 3px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+    border: 1px solid var(--accent-border);
+    line-height: 1.3;
+  }
+  .chip.gray { background: #f1f3f8; color: var(--muted); border-color: #e2e6ee; }
+  .chip.green { background: var(--green-soft); color: var(--green); border-color: #b8e6c8; }
+  .chip.amber { background: var(--amber-soft); color: var(--amber); border-color: #f4d889; }
+  .chip.red { background: var(--red-soft); color: var(--red); border-color: #f4cbcb; }
+  .status-cell { min-width: 240px; max-width: 340px; }
+  .status-text {
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .progress {
+    height: 6px;
+    background: #eef1f7;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress > span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(to right, var(--accent), #4f46e5);
+    transition: width .4s ease;
+    border-radius: 3px;
+  }
+  .progress.green > span { background: linear-gradient(to right, var(--green), #15803d); }
+  .progress.amber > span { background: linear-gradient(to right, var(--amber), #b45309); }
+  .progress.red > span { background: linear-gradient(to right, var(--red), #b91c1c); }
+  .cost { font-variant-numeric: tabular-nums; }
+  .comments-cell {
+    max-width: 280px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .row-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty .big { font-size: 16px; margin-bottom: 6px; color: var(--text); }
+  tr.group-header td {
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+  tr.group-header td .range {
+    float: right;
+    color: rgba(255,255,255,.7);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  tr.group-header td .ct {
+    margin-left: 10px;
+    background: rgba(255,255,255,.18);
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Each stage band gets its own gradient */
+  tr.group-header.web_ready td   { background: linear-gradient(90deg, #16a34a 0%, #15803d 100%); }
+  tr.group-header.launch_prep td { background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%); }
+  tr.group-header.production td  { background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%); }
+  tr.group-header.spec_order td  { background: linear-gradient(90deg, #7c3aed 0%, #6d28d9 100%); }
+  tr.group-header.testing td     { background: linear-gradient(90deg, #d97706 0%, #b45309 100%); }
+  tr.group-header.on_order td    { background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%); }
+  tr.group-header.pending td     { background: linear-gradient(90deg, #64748b 0%, #475569 100%); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 100;
+    padding: 60px 16px 16px;
+    overflow-y: auto;
+    animation: fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(15,23,42,.25);
+    width: 100%;
+    max-width: 580px;
+    padding: 26px 28px 22px 28px;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .modal h2 {
+    margin: 0 0 18px 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-row > .field { flex: 1; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--text);
+    transition: all .15s;
+  }
+  .field textarea { resize: vertical; min-height: 75px; }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+  }
+  .modal-actions .left { display: flex; gap: 8px; }
+  .modal-actions .right { display: flex; gap: 8px; }
+  .hint {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="brand-mark">WS</div>
+    <h1>Product R&amp;D Tracker<span class="sub">WS Display &middot; 2026</span></h1>
+  </div>
+  <div class="actions">
+    <button class="btn primary" id="addBtn">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Product
+    </button>
+    <button class="btn" id="exportBtn">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    <button class="btn" id="importBtn">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import
+    </button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" />
+  </div>
+</header>
+
+<main>
+  <!-- Summary stats -->
+  <section class="stats" id="statCards"></section>
+
+  <!-- Charts -->
+  <section class="charts">
+    <div class="chart-card">
+      <h3>Active Pipeline — by Phase</h3>
+      <div class="chart-wrap"><canvas id="phaseChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Active — by R&D Channel</h3>
+      <div class="chart-wrap"><canvas id="channelChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-section="active">Active <span class="count" id="cnt-active">0</span></button>
+    <button class="tab" data-section="completed">Completed <span class="count" id="cnt-completed">0</span></button>
+    <button class="tab" data-section="rejected">Rejected <span class="count" id="cnt-rejected">0</span></button>
+    <button class="tab" data-section="backburner">Back Burner <span class="count" id="cnt-backburner">0</span></button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-box" id="search" type="search" placeholder="Search products or comments…" />
+    </div>
+    <div class="hint">Data is auto-saved in this browser. Export regularly for backup.</div>
+  </div>
+
+  <table class="products">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>R&D Channel</th>
+        <th>Test Location</th>
+        <th class="status-cell">Project Status</th>
+        <th>% Band</th>
+        <th>Cost</th>
+        <th>Comments</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="productList"></tbody>
+  </table>
+</main>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add Product</h2>
+    <form id="productForm">
+      <input type="hidden" id="f-id" />
+      <div class="form-row">
+        <div class="field" style="flex:2;">
+          <label for="f-name">Product Name</label>
+          <input id="f-name" type="text" required maxlength="120" placeholder="e.g. EZ Connect Archway" />
+        </div>
+        <div class="field">
+          <label for="f-cost">Cost (USD)</label>
+          <input id="f-cost" type="number" step="0.01" min="0" placeholder="0.00" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="f-channel">R&D Channel</label>
+          <select id="f-channel" required>
+            <option value="">— Select —</option>
+            <option>China</option>
+            <option>WS MFG</option>
+            <option>WS Config</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-location">Test Location</label>
+          <select id="f-location" required>
+            <option value="">— Select —</option>
+            <option>CA</option>
+            <option>PA</option>
+            <option>MX</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-section">Section</label>
+          <select id="f-section" required>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Rejected</option>
+            <option value="backburner">Back Burner</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="f-status">Project Status</label>
+          <select id="f-status" required></select>
+          <div class="hint" id="statusHint">Selecting a status auto-sets the % complete.</div>
+        </div>
+        <div class="field">
+          <label for="f-manual-group">Display Under (override)</label>
+          <select id="f-manual-group">
+            <option value="">Auto (by %)</option>
+            <option value="web_ready">WEB READY</option>
+            <option value="launch_prep">LAUNCH PREP</option>
+            <option value="production">PRODUCTION</option>
+            <option value="spec_order">SPEC & ORDER</option>
+            <option value="testing">TESTING PHASE</option>
+            <option value="on_order">ON ORDER</option>
+            <option value="pending">PENDING / CONSIDERATION</option>
+          </select>
+          <div class="hint">Pin this product to a specific group regardless of its %.</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="f-comments">Comments</label>
+          <textarea id="f-comments" maxlength="2000" placeholder="Notes, blockers, next steps…"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <div class="left">
+          <button type="button" class="btn danger" id="deleteBtn" style="display:none;">Delete</button>
+        </div>
+        <div class="right">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ===== Status list with completion % (from WS Display "Data Validation" sheet) =====
+const STATUSES = [
+  { pct: 1,   label: "New Product Development Stages" },
+  { pct: 3,   label: "Identify NEW Product (w/ Manny)" },
+  { pct: 5,   label: "Order Samples and Create Generic Netsuite Sku" },
+  { pct: 7,   label: "Send email with ETA - Product and Vendor" },
+  { pct: 9,   label: "Request template & Instructions from vendor" },
+  { pct: 11,  label: "Receive Samples - Email Location/Product/Vendor" },
+  { pct: 13,  label: "Get Shipping Weights and Dimensions" },
+  { pct: 15,  label: "Confirm Unit CBM" },
+  { pct: 17,  label: "Set Up Frame and Evaluate the product" },
+  { pct: 19,  label: "Evaluate the Ease of Setup 1-10" },
+  { pct: 21,  label: "Evaluate the Quality of the Frame" },
+  { pct: 23,  label: "Email evaluation" },
+  { pct: 25,  label: "Measure Samples for Template and email dims" },
+  { pct: 27,  label: "Design Graphics / Catalog Ready Graphics on Template" },
+  { pct: 29,  label: "Send internal order to print (link proofsheet)" },
+  { pct: 31,  label: "Finish Graphics for Frame" },
+  { pct: 33,  label: "Test Fit Graphics on Frame (Photos)" },
+  { pct: 35,  label: "Final Review of Product" },
+  { pct: 37,  label: "Create Instructions" },
+  { pct: 39,  label: "Email Jesse to proceed with order and qtys" },
+  { pct: 41,  label: "Define Location(s) to ship to" },
+  { pct: 43,  label: "Create Name (Chris to Manny)" },
+  { pct: 45,  label: "Google Search Product Name" },
+  { pct: 47,  label: "Create Assembly Codes" },
+  { pct: 49,  label: "Create Item Code" },
+  { pct: 51,  label: "Make initial order / Submit Instructions (after sample review)" },
+  { pct: 53,  label: "Pay Deposit" },
+  { pct: 55,  label: "Verify Packaging / Shipping Weights & Dimensions w/ Vendor" },
+  { pct: 57,  label: "Packaging Video" },
+  { pct: 59,  label: "Shared Packing Info With Shipping" },
+  { pct: 61,  label: "Packing Info added to Netsuite" },
+  { pct: 63,  label: "Verify Shipping Costs" },
+  { pct: 65,  label: "Submit NPSU to NAPS" },
+  { pct: 67,  label: "Submit BOMs to NAPS" },
+  { pct: 69,  label: "Get Regular and Quantity Pricing" },
+  { pct: 71,  label: "Edit Product Photos (sample must be in house)" },
+  { pct: 73,  label: "Create Product Video" },
+  { pct: 75,  label: "Create Templates" },
+  { pct: 77,  label: "Add Quickproof to Website" },
+  { pct: 79,  label: "Create Specs" },
+  { pct: 81,  label: "Create Product Page on Web" },
+  { pct: 83,  label: "PowerPoint Doc for Training" },
+  { pct: 85,  label: "Share PowerPoint on Namely" },
+  { pct: 87,  label: "Share PowerPoint - Thursday company meeting" },
+  { pct: 89,  label: "Training Added to Product Page" },
+  { pct: 91,  label: "Test Complete Order Process on the Website" },
+  { pct: 93,  label: "Received container" },
+  { pct: 95,  label: "Soft Launch on Website" },
+  { pct: 99,  label: "Audit & Official Launch Website" },
+  { pct: 101, label: "Email Blast (post-launch)" },
+  { pct: 103, label: "Social Media Post(s) (post-launch)" },
+  { pct: 105, label: "Webinar (post-launch)" }
+];
+
+// Stage groups — mirror the 2026 tracking sheet layout
+// (Web Ready / Testing Phase / On Order / Pending = the buckets from the existing spreadsheet)
+const STAGE_GROUPS = [
+  { key: "web_ready",   label: "WEB READY",              range: "90-98%", min: 90, max: 98 },
+  { key: "launch_prep", label: "LAUNCH PREP",            range: "80-89%", min: 80, max: 89 },
+  { key: "production",  label: "PRODUCTION",             range: "60-79%", min: 60, max: 79 },
+  { key: "spec_order",  label: "SPEC & ORDER",           range: "40-59%", min: 40, max: 59 },
+  { key: "testing",     label: "TESTING PHASE",          range: "20-39%", min: 20, max: 39 },
+  { key: "on_order",    label: "ON ORDER",               range: "05-19%", min: 5,  max: 19 },
+  { key: "pending",     label: "PENDING / CONSIDERATION", range: "0-04%",  min: 0,  max: 4 }
+];
+function groupFor(pct) {
+  pct = pct || 0;
+  for (const g of STAGE_GROUPS) {
+    if (pct >= g.min && pct <= g.max) return g;
+  }
+  return STAGE_GROUPS[STAGE_GROUPS.length - 1];
+}
+// Use product's manual group override if set, otherwise auto-bucket by %.
+function productGroup(p) {
+  if (p.manualGroup) {
+    const g = STAGE_GROUPS.find(x => x.key === p.manualGroup);
+    if (g) return g;
+  }
+  return groupFor(p.statusPct || 0);
+}
+function bandFor(pct) {
+  return groupFor(pct).range;
+}
+
+const SECTIONS = ["active", "completed", "rejected", "backburner"];
+const SECTION_LABEL = {
+  active: "Active", completed: "Completed", rejected: "Rejected", backburner: "Back Burner"
+};
+const CHANNELS = ["China", "WS MFG", "WS Config"];
+
+// ===== Persistence =====
+const STORAGE_KEY = "wsd_rnd_tracker_v1";
+let state = { products: [], activeSection: "active", search: "" };
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.products)) {
+        state.products = parsed.products;
+      }
+    }
+  } catch (e) { console.warn("Could not load state", e); }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ products: state.products }));
+}
+function uid() { return "p_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+
+// ===== Populate status dropdown =====
+function populateStatusDropdown() {
+  const sel = document.getElementById("f-status");
+  sel.innerHTML = '<option value="">— Select status —</option>' +
+    STATUSES.map(s => `<option value="${s.pct}">${s.pct}% — ${s.label}</option>`).join("");
+}
+
+// ===== Modal =====
+const overlay = document.getElementById("modalOverlay");
+const form = document.getElementById("productForm");
+const modalTitle = document.getElementById("modalTitle");
+const deleteBtn = document.getElementById("deleteBtn");
+
+function openModal(product) {
+  modalTitle.textContent = product ? "Edit Product" : "Add Product";
+  form.reset();
+  document.getElementById("f-id").value = product?.id || "";
+  if (product) {
+    document.getElementById("f-name").value = product.name || "";
+    document.getElementById("f-cost").value = product.cost ?? "";
+    document.getElementById("f-channel").value = product.rdChannel || "";
+    document.getElementById("f-location").value = product.testLocation || "";
+    document.getElementById("f-section").value = product.section || "active";
+    document.getElementById("f-status").value = String(product.statusPct ?? "");
+    document.getElementById("f-manual-group").value = product.manualGroup || "";
+    document.getElementById("f-comments").value = product.comments || "";
+    deleteBtn.style.display = "";
+  } else {
+    document.getElementById("f-section").value = state.activeSection;
+    deleteBtn.style.display = "none";
+  }
+  overlay.classList.add("show");
+}
+function closeModal() { overlay.classList.remove("show"); }
+
+document.getElementById("addBtn").addEventListener("click", () => openModal(null));
+document.getElementById("cancelBtn").addEventListener("click", closeModal);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const id = document.getElementById("f-id").value || uid();
+  const pct = parseInt(document.getElementById("f-status").value, 10);
+  const status = STATUSES.find(s => s.pct === pct);
+  const now = new Date().toISOString();
+  const existing = state.products.find(p => p.id === id);
+  const data = {
+    id,
+    name: document.getElementById("f-name").value.trim(),
+    rdChannel: document.getElementById("f-channel").value,
+    testLocation: document.getElementById("f-location").value,
+    section: document.getElementById("f-section").value,
+    statusPct: pct,
+    statusLabel: status ? status.label : "",
+    manualGroup: document.getElementById("f-manual-group").value || "",
+    cost: parseFloat(document.getElementById("f-cost").value) || 0,
+    comments: document.getElementById("f-comments").value.trim(),
+    dateAdded: existing?.dateAdded || now,
+    dateUpdated: now
+  };
+  if (existing) Object.assign(existing, data);
+  else state.products.push(data);
+  saveState();
+  closeModal();
+  render();
+});
+
+deleteBtn.addEventListener("click", () => {
+  const id = document.getElementById("f-id").value;
+  if (!id) return;
+  if (!confirm("Delete this product permanently?")) return;
+  state.products = state.products.filter(p => p.id !== id);
+  saveState();
+  closeModal();
+  render();
+});
+
+// ===== Tabs =====
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.activeSection = btn.dataset.section;
+    render();
+  });
+});
+
+// ===== Search =====
+document.getElementById("search").addEventListener("input", (e) => {
+  state.search = e.target.value.toLowerCase();
+  renderTable();
+});
+
+// ===== Export / Import =====
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ products: state.products, exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `rnd-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if (!parsed.products || !Array.isArray(parsed.products)) throw new Error("Invalid file");
+    if (!confirm(`Import ${parsed.products.length} products? This replaces current data.`)) return;
+    state.products = parsed.products;
+    saveState();
+    render();
+  } catch (err) {
+    alert("Could not import: " + err.message);
+  }
+  e.target.value = "";
+});
+
+// ===== Render =====
+function chipForChannel(c) {
+  if (c === "China")     return `<span class="chip">China</span>`;
+  if (c === "WS MFG")    return `<span class="chip green">WS MFG</span>`;
+  if (c === "WS Config") return `<span class="chip amber">WS Config</span>`;
+  return `<span class="chip gray">${c || "—"}</span>`;
+}
+function chipForLocation(l) {
+  if (!l) return `<span class="chip gray">—</span>`;
+  return `<span class="chip gray">${l}</span>`;
+}
+function progressClass(pct) {
+  if (pct >= 99) return "green";
+  if (pct >= 50) return "amber";
+  return "";
+}
+function fmtMoney(n) {
+  if (!n) return "$0";
+  return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function renderStats() {
+  const counts = { active: 0, completed: 0, rejected: 0, backburner: 0 };
+  state.products.forEach(p => counts[p.section] = (counts[p.section] || 0) + 1);
+  SECTIONS.forEach(s => {
+    const el = document.getElementById("cnt-" + s);
+    if (el) el.textContent = counts[s] || 0;
+  });
+
+  const active = state.products.filter(p => p.section === "active");
+  const completed = state.products.filter(p => p.section === "completed");
+  const avgPct = active.length ? Math.round(active.reduce((s, p) => s + (p.statusPct || 0), 0) / active.length) : 0;
+  const totalCost = active.reduce((s, p) => s + (p.cost || 0), 0);
+  const totalCostCompleted = completed.reduce((s, p) => s + (p.cost || 0), 0);
+  const cards = [
+    { label: "Active",      value: counts.active },
+    { label: "Completed",   value: counts.completed },
+    { label: "Rejected",    value: counts.rejected },
+    { label: "Back Burner", value: counts.backburner },
+    { label: "Avg % Active",value: avgPct + "%" },
+    { label: "Active Spend",value: fmtMoney(totalCost) }
+  ];
+  document.getElementById("statCards").innerHTML = cards.map(c =>
+    `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`
+  ).join("");
+}
+
+let phaseChart, channelChart;
+function renderCharts() {
+  const active = state.products.filter(p => p.section === "active");
+
+  // Phase chart — uses the same stage groups as the grouped Active table
+  const groupCounts = STAGE_GROUPS.map(g => ({ ...g, count: 0 }));
+  active.forEach(p => {
+    const g = productGroup(p);
+    const bucket = groupCounts.find(x => x.key === g.key);
+    if (bucket) bucket.count++;
+  });
+  // Show in launch-order (Pending → Web Ready) so it reads left-to-right like a pipeline
+  const orderedGroups = [...groupCounts].reverse();
+  const phaseCtx = document.getElementById("phaseChart").getContext("2d");
+  if (phaseChart) phaseChart.destroy();
+  phaseChart = new Chart(phaseCtx, {
+    type: "bar",
+    data: {
+      labels: orderedGroups.map(x => x.label),
+      datasets: [{
+        label: "Active products",
+        data: orderedGroups.map(x => x.count),
+        backgroundColor: "#2856d6",
+        borderRadius: 4,
+        maxBarThickness: 50
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { afterLabel: (ctx) => orderedGroups[ctx.dataIndex].range } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0, color: "#6b7383" }, grid: { color: "#eef0f4" } },
+        x: { ticks: { color: "#6b7383", font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Channel chart
+  const channelCounts = CHANNELS.map(c => ({ name: c, count: 0 }));
+  active.forEach(p => {
+    const bucket = channelCounts.find(x => x.name === p.rdChannel);
+    if (bucket) bucket.count++;
+  });
+  const channelCtx = document.getElementById("channelChart").getContext("2d");
+  if (channelChart) channelChart.destroy();
+  channelChart = new Chart(channelCtx, {
+    type: "doughnut",
+    data: {
+      labels: channelCounts.map(x => x.name),
+      datasets: [{
+        data: channelCounts.map(x => x.count),
+        backgroundColor: ["#2856d6", "#1f9d55", "#e0a200"],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { color: "#6b7383", boxWidth: 12 } }
+      },
+      cutout: "60%"
+    }
+  });
+}
+
+function rowHtmlFor(p) {
+  const pctRaw = p.statusPct || 0;
+  const pctClamped = Math.min(100, pctRaw);
+  const moveButtons = SECTIONS
+    .filter(s => s !== p.section)
+    .map(s => `<button class="btn small" data-action="move" data-id="${p.id}" data-target="${s}">→ ${SECTION_LABEL[s]}</button>`)
+    .join("");
+  return `<tr class="product-row">
+    <td><div class="product-name">${escapeHtml(p.name)}<span class="date">Added ${fmtDate(p.dateAdded)}</span></div></td>
+    <td>${chipForChannel(p.rdChannel)}</td>
+    <td>${chipForLocation(p.testLocation)}</td>
+    <td class="status-cell">
+      <div class="status-text">${escapeHtml(p.statusLabel || "—")}</div>
+      <div class="progress ${progressClass(pctRaw)}"><span style="width:${pctClamped}%"></span></div>
+      <div class="hint">${pctRaw}% complete</div>
+    </td>
+    <td><span class="chip gray">${bandFor(pctRaw)}</span></td>
+    <td class="cost">${fmtMoney(p.cost)}</td>
+    <td class="comments-cell">${escapeHtml(p.comments || "")}</td>
+    <td style="text-align:right;">
+      <div class="row-actions" style="justify-content:flex-end;">
+        <button class="btn small" data-action="edit" data-id="${p.id}">Edit</button>
+        ${moveButtons}
+      </div>
+    </td>
+  </tr>`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById("productList");
+  let rows = state.products.filter(p => p.section === state.activeSection);
+  if (state.search) {
+    rows = rows.filter(p =>
+      (p.name || "").toLowerCase().includes(state.search) ||
+      (p.comments || "").toLowerCase().includes(state.search)
+    );
+  }
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
+      <div class="big">No products in ${SECTION_LABEL[state.activeSection]}.</div>
+      <div>Click <strong>+ Add Product</strong> to create one.</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  // Active section: render grouped by stage (Web Ready → Pending), matching the 2026 sheet layout.
+  // Other sections: flat list sorted by most recently updated.
+  if (state.activeSection === "active") {
+    const html = [];
+    STAGE_GROUPS.forEach(g => {
+      const inGroup = rows
+        .filter(p => productGroup(p).key === g.key)
+        .sort((a, b) => (b.statusPct || 0) - (a.statusPct || 0));
+      if (inGroup.length === 0) return;
+      html.push(
+        `<tr class="group-header ${g.key}"><td colspan="8">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
+      );
+      inGroup.forEach(p => html.push(rowHtmlFor(p)));
+    });
+    tbody.innerHTML = html.join("");
+  } else {
+    rows.sort((a, b) => (b.dateUpdated || "").localeCompare(a.dateUpdated || ""));
+    tbody.innerHTML = rows.map(rowHtmlFor).join("");
+  }
+
+  tbody.querySelectorAll("button[data-action]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const product = state.products.find(p => p.id === id);
+      if (!product) return;
+      if (btn.dataset.action === "edit") {
+        openModal(product);
+      } else if (btn.dataset.action === "move") {
+        product.section = btn.dataset.target;
+        product.dateUpdated = new Date().toISOString();
+        saveState();
+        render();
+      }
+    });
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function render() {
+  renderStats();
+  renderCharts();
+  renderTable();
+}
+
+// ===== Init =====
+populateStatusDropdown();
+loadState();
+
+// Seed with full 2026 data on first run. Each product carries a manualGroup matching where it lived in the spreadsheet.
+if (state.products.length === 0) {
+  const now = new Date().toISOString();
+  const mk = (name, rdChannel, testLocation, pct, statusLabel, cost, comments, manualGroup) => ({
+    id: uid(), name, rdChannel, testLocation, section: "active",
+    statusPct: pct, statusLabel, manualGroup: manualGroup || "",
+    cost: cost || 0, comments: comments || "",
+    dateAdded: now, dateUpdated: now
+  });
+  state.products = [
+    mk("CAS-BRZ-WALL13", "China", "CA", 95, "Soft Launch on Website", 0, "ETA 4/1/26", "web_ready"),
+    mk("EZ Arrow 8ft", "WS MFG", "MX", 79, "Create Specs", 0, "", "web_ready"),
+    mk("EZT6STRTT", "WS MFG", "MX", 79, "Create Specs", 0, "", "web_ready"),
+    mk("EZT8STRTT", "WS MFG", "MX", 65, "Submit NPSU to NAPS", 0, "", "web_ready"),
+    mk("GPOP-DLX", "China", "MX", 67, "Submit Boms to Naps", 0, "", "web_ready"),
+    mk("PortaMax - Expandable hardcase - needs new name", "China", "CA", 45, "Google Search Product Name", 0, "Hawk took case 3/24 to bring back to factory", "web_ready"),
+    mk("Suction Cup Flag Mount - Kawa", "China", "CA", 35, "Final Review of Product", 5.5, "", "testing"),
+    mk("Lintel - Spade PVC Roll Up", "China", "CA", 35, "Final Review of Product", 10.5, "", "testing"),
+    mk("Falcon Archway Arms - Kawa", "China", "CA", 11, "Receive Samples - Email Location/Product/Vendor", 0, "Cost ref: See Comment", "testing"),
+    mk("Street Pole Banner Spring - Kawa", "China", "CA", 35, "Final Review of Product", 0, "Cost ref: https://docs.google.com/spreadsheets/d/1ybSglNuG_cwnZieZ6IW_OAPf-TX55-6X/edit?gid=196900821#gid=196900821", "testing"),
+    mk("Singo Wall Mount", "China", "CA", 35, "Final Review of Product", 0, "Cost ref: https://docs.google.com/spreadsheets/d/1pO5_axQ5VtLBv7cN7fr3BjZMt7ueBvSm/edit?gid=358718827#gid=358718827", "testing"),
+    mk("10ft Full Wall Zipper Sides", "WS MFG", "CA", 35, "Final Review of Product", 0, "", "testing"),
+    mk("10ft Full Wall w/Zipper Door", "WS MFG", "CA", 35, "Final Review of Product", 0, "", "testing"),
+    mk("LED lights for Casitas - Shenzhen Youyang Technology Co", "China", "CA", 5, "Order Samples and Create Generic Netsuite Sku", 21.0, "", "on_order"),
+    mk("QFRAME - Hawk", "China", "CA", 9, "Request template & Instructions from vendor", 0, "", "on_order"),
+    mk("Lintel - Chromix PVC RGB lightbox", "China", "CA", 5, "Order Samples and Create Generic Netsuite Sku", 0, "Cost ref: https://drive.google.com/file/d/1RAqukHUMcMBgaJsDo1jGys8cJc_cYcxj/view?usp=drive_link | Changed sample to white", "on_order"),
+    mk("Lintel - ST25", "China", "CA", 5, "Order Samples and Create Generic Netsuite Sku", 0, "Cost ref: https://docs.google.com/spreadsheets/d/11o8paDfyoq-j1WVHSix6Vcdxl22aPhB3/edit?usp=drive_link&ouid=116887652424570185577&rtpof=true&sd=true", "on_order"),
+    mk("QSEG style frame - SIGNIX", "China", "CA", 5, "Order Samples and Create Generic Netsuite Sku", 0, "Cost ref: https://drive.google.com/file/d/1XPUie1_5lpaNJZzgrtc18yQnou20A369/view?usp=drive_link", "on_order"),
+    mk("Gable A Tent - GR", "China", "CA", 35, "Final Review of Product", 0, "Cost ref: https://docs.google.com/spreadsheets/d/10_KJ4DvkUt5evKnfbCz1iudEVKpthnGl/edit?rtpof=true&sd=true", "on_order"),
+    mk("Extended Eave Tent - GR", "China", "CA", 3, "Identify NEW Product (w/ Manny)", 0, "Cost ref: https://docs.google.com/spreadsheets/d/10_KJ4DvkUt5evKnfbCz1iudEVKpthnGl/edit?gid=470548328#gid=470548328", "on_order"),
+    mk("Ez Connect Barrier 6ft", "WS MFG", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "", "on_order"),
+    mk("Ez Connect Barrier 8ft", "WS MFG", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "", "on_order"),
+    mk("Waterfall Shelf Lite", "WS MFG", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "", "on_order"),
+    mk("Singo Hanging Banner 3m x 3m x 1m", "China", "CA", 3, "Identify NEW Product (w/ Manny)", 0, "Cost ref: https://docs.google.com/spreadsheets/d/1pO5_axQ5VtLBv7cN7fr3BjZMt7ueBvSm/edit?gid=358718827#gid=358718827", "on_order"),
+    mk("Penant Flags", "WS Config", "CA", 3, "Identify NEW Product (w/ Manny)", 0, "", "pending"),
+    mk("Steel Tube Feet", "China", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "", "pending"),
+    mk("Print on clear material for casitas. (Hoping to use up the clear material we have)", "WS MFG", "CA", 3, "Identify NEW Product (w/ Manny)", 0, "", "pending"),
+    mk("30mm plastic 2 way tube connector", "China", "CA", 3, "Identify NEW Product (w/ Manny)", 0.34, "", "pending"),
+    mk("30mm plastic 3 way tube connector", "China", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "Hawk", "pending"),
+    mk("Extrusions Dealership package", "WS Config", "MX", 3, "Identify NEW Product (w/ Manny)", 0, "", "pending"),
+    mk("Wallbox Booth Configurations", "WS Config", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Wallbox Ez Extend (Mini) 3x7.5", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Wallbox w/monitor (chair)", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Slanted wallbox. Either Regular shape or archway", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("EZ Connect Grid Wall", "China", "CA", 3, "Identify NEW Product (w/ Manny)", 0, "", "pending"),
+    mk("2 Ez extends to make shelving unit in the middle", "WS MFG", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Ez Tube \"A\" Frame", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("New style A Frames?", "WS MFG", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Ez connect Configuration with shelves (see ASI photo)", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Kits? including Hard Trolley case and/or medium hard case. Check Origami", "WS Config", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Tslot lines??? -- Portable wall w/ vail", "WS MFG", "", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Nylong Bags - Rolls or premade", "WS MFG", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Powder coating???", "China", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Pop Up Kiosk - Either tubing or aluminum extrusions", "WS MFG", "MX", 1, "New Product Development Stages", 0, "Ideas LINK", "pending"),
+    mk("Bellybar tables", "China", "MX", 1, "New Product Development Stages", 0, "Belly bar table reference: google.com/search?q=belly+bar+table", "pending"),
+    mk("Saddle back prints for existing barriers", "WS MFG", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Literature Racks?", "China", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("RPL shelves (see ASI photo)", "China", "CA", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("5ft Storage with shelves into return wall. (10ft backwall with storage and shelves)", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending"),
+    mk("Origami Arch Bridge", "WS MFG", "MX", 1, "New Product Development Stages", 0, "", "pending")
+  ];
+  saveState();
+}
+
+render();
+</script>
+</body>
+</html>
