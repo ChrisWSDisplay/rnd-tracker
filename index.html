@@ -379,6 +379,34 @@
   .progress.amber > span { background: linear-gradient(to right, var(--amber), #b45309); }
   .progress.red > span { background: linear-gradient(to right, var(--red), #b91c1c); }
   .cost { font-variant-numeric: tabular-nums; }
+  .hts-cell {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    min-width: 130px;
+    white-space: nowrap;
+  }
+  .hts-cell .hts-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    line-height: 1.6;
+  }
+  .hts-cell .hts-tag {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    font-weight: 600;
+    min-width: 30px;
+  }
+  .hts-cell .hts-val {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .hts-cell .hts-val.empty {
+    color: var(--muted-soft);
+    font-weight: 400;
+  }
   .comments-cell {
     max-width: 280px;
     color: var(--muted);
@@ -572,6 +600,7 @@
         <th class="status-cell">Project Status</th>
         <th>% Band</th>
         <th>Cost</th>
+        <th>HTS Codes</th>
         <th>Comments</th>
         <th style="text-align:right;">Actions</th>
       </tr>
@@ -644,6 +673,16 @@
             <option value="pending">PENDING / CONSIDERATION</option>
           </select>
           <div class="hint">Pin this product to a specific group regardless of its %.</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="f-hts-hardware">HTS Code — Hardware</label>
+          <input id="f-hts-hardware" type="text" maxlength="40" placeholder="e.g. 9403.20.0086" />
+        </div>
+        <div class="field">
+          <label for="f-hts-graphic">HTS Code — Graphic</label>
+          <input id="f-hts-graphic" type="text" maxlength="40" placeholder="e.g. 5407.10.0030" />
         </div>
       </div>
       <div class="form-row">
@@ -820,6 +859,8 @@ function openModal(product) {
     document.getElementById("f-section").value = product.section || "active";
     document.getElementById("f-status").value = String(product.statusPct ?? "");
     document.getElementById("f-manual-group").value = product.manualGroup || "";
+    document.getElementById("f-hts-hardware").value = product.htsHardware || "";
+    document.getElementById("f-hts-graphic").value = product.htsGraphic || "";
     document.getElementById("f-comments").value = product.comments || "";
     deleteBtn.style.display = "";
   } else {
@@ -850,6 +891,8 @@ form.addEventListener("submit", async (e) => {
     statusPct: pct,
     statusLabel: status ? status.label : "",
     manualGroup: document.getElementById("f-manual-group").value || "",
+    htsHardware: document.getElementById("f-hts-hardware").value.trim(),
+    htsGraphic: document.getElementById("f-hts-graphic").value.trim(),
     cost: parseFloat(document.getElementById("f-cost").value) || 0,
     comments: document.getElementById("f-comments").value.trim(),
     dateAdded: existing?.dateAdded || now,
@@ -1070,6 +1113,10 @@ function rowHtmlFor(p) {
     </td>
     <td><span class="chip gray">${bandFor(pctRaw)}</span></td>
     <td class="cost">${fmtMoney(p.cost)}</td>
+    <td class="hts-cell">
+      <div class="hts-row"><span class="hts-tag">HW</span><span class="hts-val ${p.htsHardware ? "" : "empty"}">${escapeHtml(p.htsHardware || "—")}</span></div>
+      <div class="hts-row"><span class="hts-tag">GFX</span><span class="hts-val ${p.htsGraphic ? "" : "empty"}">${escapeHtml(p.htsGraphic || "—")}</span></div>
+    </td>
     <td class="comments-cell">${escapeHtml(p.comments || "")}</td>
     <td style="text-align:right;">
       <div class="row-actions" style="justify-content:flex-end;">
@@ -1091,7 +1138,7 @@ function renderTable() {
   }
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">
       <div class="big">No products in ${SECTION_LABEL[state.activeSection]}.</div>
       <div>Click <strong>+ Add Product</strong> to create one.</div>
     </div></td></tr>`;
@@ -1108,7 +1155,7 @@ function renderTable() {
         .sort((a, b) => (b.statusPct || 0) - (a.statusPct || 0));
       if (inGroup.length === 0) return;
       html.push(
-        `<tr class="group-header ${g.key}"><td colspan="8">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
+        `<tr class="group-header ${g.key}"><td colspan="9">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
       );
       inGroup.forEach(p => html.push(rowHtmlFor(p)));
     });
