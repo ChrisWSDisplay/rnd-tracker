@@ -338,6 +338,12 @@
     font-size: 11px;
     margin-top: 3px;
   }
+  .product-name .date-section {
+    font-weight: 500;
+  }
+  .product-name .date-section.completed  { color: var(--green); }
+  .product-name .date-section.rejected   { color: var(--red); }
+  .product-name .date-section.backburner { color: var(--amber); }
   .chip {
     display: inline-flex;
     align-items: center;
@@ -407,6 +413,50 @@
     color: var(--muted-soft);
     font-weight: 400;
   }
+  .vendor-cell {
+    font-size: 12.5px;
+    color: var(--text);
+    max-width: 130px;
+  }
+  .vendor-cell.empty { color: var(--muted-soft); }
+  .photos-cell { min-width: 110px; font-size: 12px; }
+  .photos-cell details summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    font-weight: 500;
+    font-size: 11px;
+    user-select: none;
+  }
+  .photos-cell details summary::-webkit-details-marker { display: none; }
+  .photos-cell details summary:hover { background: #dde7fd; }
+  .photos-cell details[open] summary { margin-bottom: 6px; }
+  .photos-cell .photo-empty {
+    color: var(--muted-soft);
+    font-size: 12px;
+  }
+  .photos-cell .photo-links {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .photos-cell .photo-links a {
+    color: var(--accent);
+    font-size: 11.5px;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+  .photos-cell .photo-links a:hover { text-decoration: underline; }
   .comments-cell {
     max-width: 280px;
     color: var(--muted);
@@ -586,7 +636,7 @@
   <div class="toolbar">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input class="search-box" id="search" type="search" placeholder="Search products or comments…" />
+      <input class="search-box" id="search" type="search" placeholder="Search products, vendors, or comments…" />
     </div>
     <div class="hint">Changes save to the shared database instantly — everyone sees updates in real time.</div>
   </div>
@@ -596,11 +646,13 @@
       <tr>
         <th>Product</th>
         <th>R&D Channel</th>
+        <th>Vendor</th>
         <th>Test Location</th>
         <th class="status-cell">Project Status</th>
         <th>% Band</th>
         <th>Cost</th>
         <th>HTS Codes</th>
+        <th>Photos</th>
         <th>Comments</th>
         <th style="text-align:right;">Actions</th>
       </tr>
@@ -677,12 +729,25 @@
       </div>
       <div class="form-row">
         <div class="field">
+          <label for="f-vendor">Vendor</label>
+          <input id="f-vendor" type="text" maxlength="80" placeholder="e.g. Kawa, Shenzhen Youyang, GR" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
           <label for="f-hts-hardware">HTS Code — Hardware</label>
           <input id="f-hts-hardware" type="text" maxlength="40" placeholder="e.g. 9403.20.0086" />
         </div>
         <div class="field">
           <label for="f-hts-graphic">HTS Code — Graphic</label>
           <input id="f-hts-graphic" type="text" maxlength="40" placeholder="e.g. 5407.10.0030" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="f-photos">Test Photos (URLs, one per line)</label>
+          <textarea id="f-photos" placeholder="https://drive.google.com/...&#10;https://drive.google.com/..."></textarea>
+          <div class="hint">Paste Google Drive, Dropbox, or any image URLs — one per line.</div>
         </div>
       </div>
       <div class="form-row">
@@ -861,6 +926,8 @@ function openModal(product) {
     document.getElementById("f-manual-group").value = product.manualGroup || "";
     document.getElementById("f-hts-hardware").value = product.htsHardware || "";
     document.getElementById("f-hts-graphic").value = product.htsGraphic || "";
+    document.getElementById("f-vendor").value = product.vendor || "";
+    document.getElementById("f-photos").value = (product.photos || []).join("\n");
     document.getElementById("f-comments").value = product.comments || "";
     deleteBtn.style.display = "";
   } else {
@@ -882,21 +949,27 @@ form.addEventListener("submit", async (e) => {
   const status = STATUSES.find(s => s.pct === pct);
   const now = new Date().toISOString();
   const existing = state.products.find(p => p.id === id);
+  const newSection = document.getElementById("f-section").value;
+  const sectionChanged = !existing || existing.section !== newSection;
   const data = {
     id,
     name: document.getElementById("f-name").value.trim(),
     rdChannel: document.getElementById("f-channel").value,
     testLocation: document.getElementById("f-location").value,
-    section: document.getElementById("f-section").value,
+    section: newSection,
     statusPct: pct,
     statusLabel: status ? status.label : "",
     manualGroup: document.getElementById("f-manual-group").value || "",
     htsHardware: document.getElementById("f-hts-hardware").value.trim(),
     htsGraphic: document.getElementById("f-hts-graphic").value.trim(),
+    vendor: document.getElementById("f-vendor").value.trim(),
+    photos: document.getElementById("f-photos").value
+              .split(/\n+/).map(s => s.trim()).filter(Boolean),
     cost: parseFloat(document.getElementById("f-cost").value) || 0,
     comments: document.getElementById("f-comments").value.trim(),
     dateAdded: existing?.dateAdded || now,
-    dateUpdated: now
+    dateUpdated: now,
+    sectionChangedAt: sectionChanged ? now : (existing?.sectionChangedAt || "")
   };
   try {
     await saveProduct(data);
@@ -1102,9 +1175,23 @@ function rowHtmlFor(p) {
     .filter(s => s !== p.section)
     .map(s => `<button class="btn small" data-action="move" data-id="${p.id}" data-target="${s}">→ ${SECTION_LABEL[s]}</button>`)
     .join("");
+  const photos = Array.isArray(p.photos) ? p.photos : [];
+  const photoCell = photos.length === 0
+    ? `<span class="photo-empty">—</span>`
+    : `<details><summary>📷 ${photos.length} ${photos.length === 1 ? "photo" : "photos"}</summary>
+        <div class="photo-links">
+          ${photos.map((u, i) => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" title="${escapeHtml(u)}">Photo ${i + 1}</a>`).join("")}
+        </div>
+      </details>`;
+  // Show section-change date for non-Active sections; fallback to dateUpdated for legacy rows.
+  const SECTION_DATE_LABEL = { completed: "Completed", rejected: "Rejected", backburner: "Moved to Back Burner" };
+  const sectionDateLine = (p.section !== "active")
+    ? `<span class="date date-section ${p.section}">${SECTION_DATE_LABEL[p.section]} ${fmtDate(p.sectionChangedAt || p.dateUpdated)}</span>`
+    : `<span class="date">Added ${fmtDate(p.dateAdded)}</span>`;
   return `<tr class="product-row">
-    <td><div class="product-name">${escapeHtml(p.name)}<span class="date">Added ${fmtDate(p.dateAdded)}</span></div></td>
+    <td><div class="product-name">${escapeHtml(p.name)}${sectionDateLine}</div></td>
     <td>${chipForChannel(p.rdChannel)}</td>
+    <td class="vendor-cell ${p.vendor ? "" : "empty"}">${escapeHtml(p.vendor || "—")}</td>
     <td>${chipForLocation(p.testLocation)}</td>
     <td class="status-cell">
       <div class="status-text">${escapeHtml(p.statusLabel || "—")}</div>
@@ -1117,6 +1204,7 @@ function rowHtmlFor(p) {
       <div class="hts-row"><span class="hts-tag">HW</span><span class="hts-val ${p.htsHardware ? "" : "empty"}">${escapeHtml(p.htsHardware || "—")}</span></div>
       <div class="hts-row"><span class="hts-tag">GFX</span><span class="hts-val ${p.htsGraphic ? "" : "empty"}">${escapeHtml(p.htsGraphic || "—")}</span></div>
     </td>
+    <td class="photos-cell">${photoCell}</td>
     <td class="comments-cell">${escapeHtml(p.comments || "")}</td>
     <td style="text-align:right;">
       <div class="row-actions" style="justify-content:flex-end;">
@@ -1133,12 +1221,13 @@ function renderTable() {
   if (state.search) {
     rows = rows.filter(p =>
       (p.name || "").toLowerCase().includes(state.search) ||
+      (p.vendor || "").toLowerCase().includes(state.search) ||
       (p.comments || "").toLowerCase().includes(state.search)
     );
   }
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty">
       <div class="big">No products in ${SECTION_LABEL[state.activeSection]}.</div>
       <div>Click <strong>+ Add Product</strong> to create one.</div>
     </div></td></tr>`;
@@ -1155,7 +1244,7 @@ function renderTable() {
         .sort((a, b) => (b.statusPct || 0) - (a.statusPct || 0));
       if (inGroup.length === 0) return;
       html.push(
-        `<tr class="group-header ${g.key}"><td colspan="9">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
+        `<tr class="group-header ${g.key}"><td colspan="11">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
       );
       inGroup.forEach(p => html.push(rowHtmlFor(p)));
     });
@@ -1174,7 +1263,13 @@ function renderTable() {
         openModal(product);
       } else if (btn.dataset.action === "move") {
         try {
-          await saveProduct({ ...product, section: btn.dataset.target, dateUpdated: new Date().toISOString() });
+          const now = new Date().toISOString();
+          await saveProduct({
+            ...product,
+            section: btn.dataset.target,
+            dateUpdated: now,
+            sectionChangedAt: now
+          });
         } catch (err) {
           alert("Could not move: " + err.message);
         }
