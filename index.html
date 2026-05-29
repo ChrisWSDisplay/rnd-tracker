@@ -419,6 +419,14 @@
     max-width: 130px;
   }
   .vendor-cell.empty { color: var(--muted-soft); }
+  .tracking-cell {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    color: var(--text);
+    max-width: 150px;
+    word-break: break-all;
+  }
+  .tracking-cell.empty { color: var(--muted-soft); }
   .photos-cell { min-width: 110px; font-size: 12px; }
   .photos-cell details summary {
     list-style: none;
@@ -647,12 +655,13 @@
         <th>Product</th>
         <th>R&D Channel</th>
         <th>Vendor</th>
+        <th>Sample Tracking #</th>
         <th>Test Location</th>
         <th class="status-cell">Project Status</th>
         <th>% Band</th>
         <th>Cost</th>
         <th>HTS Codes</th>
-        <th>Photos</th>
+        <th>Testing Photos</th>
         <th>Comments</th>
         <th style="text-align:right;">Actions</th>
       </tr>
@@ -732,6 +741,10 @@
           <label for="f-vendor">Vendor</label>
           <input id="f-vendor" type="text" maxlength="80" placeholder="e.g. Kawa, Shenzhen Youyang, GR" />
         </div>
+        <div class="field">
+          <label for="f-tracking">Sample Tracking #</label>
+          <input id="f-tracking" type="text" maxlength="80" placeholder="e.g. 1Z999AA10123456784" />
+        </div>
       </div>
       <div class="form-row">
         <div class="field">
@@ -745,7 +758,7 @@
       </div>
       <div class="form-row">
         <div class="field">
-          <label for="f-photos">Test Photos (URLs, one per line)</label>
+          <label for="f-photos">Product Testing Photos (URLs, one per line)</label>
           <textarea id="f-photos" placeholder="https://drive.google.com/...&#10;https://drive.google.com/..."></textarea>
           <div class="hint">Paste Google Drive, Dropbox, or any image URLs — one per line.</div>
         </div>
@@ -927,6 +940,7 @@ function openModal(product) {
     document.getElementById("f-hts-hardware").value = product.htsHardware || "";
     document.getElementById("f-hts-graphic").value = product.htsGraphic || "";
     document.getElementById("f-vendor").value = product.vendor || "";
+    document.getElementById("f-tracking").value = product.sampleTracking || "";
     document.getElementById("f-photos").value = (product.photos || []).join("\n");
     document.getElementById("f-comments").value = product.comments || "";
     deleteBtn.style.display = "";
@@ -963,6 +977,7 @@ form.addEventListener("submit", async (e) => {
     htsHardware: document.getElementById("f-hts-hardware").value.trim(),
     htsGraphic: document.getElementById("f-hts-graphic").value.trim(),
     vendor: document.getElementById("f-vendor").value.trim(),
+    sampleTracking: document.getElementById("f-tracking").value.trim(),
     photos: document.getElementById("f-photos").value
               .split(/\n+/).map(s => s.trim()).filter(Boolean),
     cost: parseFloat(document.getElementById("f-cost").value) || 0,
@@ -1192,6 +1207,7 @@ function rowHtmlFor(p) {
     <td><div class="product-name">${escapeHtml(p.name)}${sectionDateLine}</div></td>
     <td>${chipForChannel(p.rdChannel)}</td>
     <td class="vendor-cell ${p.vendor ? "" : "empty"}">${escapeHtml(p.vendor || "—")}</td>
+    <td class="tracking-cell ${p.sampleTracking ? "" : "empty"}">${escapeHtml(p.sampleTracking || "—")}</td>
     <td>${chipForLocation(p.testLocation)}</td>
     <td class="status-cell">
       <div class="status-text">${escapeHtml(p.statusLabel || "—")}</div>
@@ -1222,12 +1238,13 @@ function renderTable() {
     rows = rows.filter(p =>
       (p.name || "").toLowerCase().includes(state.search) ||
       (p.vendor || "").toLowerCase().includes(state.search) ||
+      (p.sampleTracking || "").toLowerCase().includes(state.search) ||
       (p.comments || "").toLowerCase().includes(state.search)
     );
   }
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11"><div class="empty">
+    tbody.innerHTML = `<tr><td colspan="12"><div class="empty">
       <div class="big">No products in ${SECTION_LABEL[state.activeSection]}.</div>
       <div>Click <strong>+ Add Product</strong> to create one.</div>
     </div></td></tr>`;
@@ -1244,7 +1261,7 @@ function renderTable() {
         .sort((a, b) => (b.statusPct || 0) - (a.statusPct || 0));
       if (inGroup.length === 0) return;
       html.push(
-        `<tr class="group-header ${g.key}"><td colspan="11">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
+        `<tr class="group-header ${g.key}"><td colspan="12">${g.label}<span class="ct">${inGroup.length}</span><span class="range">${g.range}</span></td></tr>`
       );
       inGroup.forEach(p => html.push(rowHtmlFor(p)));
     });
