@@ -1372,6 +1372,60 @@
     border: 1px solid rgba(255,255,255,.12);
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- Vendor cards (detail view) ---- */
+  .vendor-list { display: flex; flex-direction: column; gap: 14px; }
+  .vendor-card {
+    padding: 18px 20px; border-radius: var(--g-radius); background: var(--g-fill);
+    -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur);
+    border: 1px solid rgba(255,255,255,.55); box-shadow: var(--g-shadow), var(--g-edge);
+  }
+  .vendor-card.approved { box-shadow: var(--g-shadow), var(--g-edge), inset 3px 0 0 #16a34a; }
+  .vendor-card.rejected { opacity: .72; }
+  body.theme-dark .vendor-card { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.12); box-shadow: 0 12px 36px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.14); }
+  .vc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .vc-product { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--g-text); line-height: 1.3; }
+  body.theme-dark .vc-product { color: #f1f4ff; }
+  .vc-vendor { font-size: 13px; color: var(--g-text-2); margin-top: 3px; font-weight: 600; }
+  body.theme-dark .vc-vendor { color: rgba(226,232,240,.62); }
+  .vc-head-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .vc-desc { font-size: 13px; color: var(--g-text-2); line-height: 1.55; margin-top: 11px; max-width: 820px; }
+  body.theme-dark .vc-desc { color: rgba(226,232,240,.62); }
+
+  .cost-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  .cost-table caption { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--g-text-3); margin-bottom: 4px; }
+  .cost-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--g-text-3); font-weight: 600; padding: 0 12px 6px 0; }
+  .cost-table td { padding: 7px 12px 7px 0; border-top: 1px solid rgba(120,130,160,.16); font-variant-numeric: tabular-nums; color: var(--g-text); }
+  body.theme-dark .cost-table td { border-color: rgba(255,255,255,.1); color: #eaeefb; }
+  .cost-table td.price { font-weight: 700; }
+
+  .vc-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 14px 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(120,130,160,.16); }
+  body.theme-dark .vc-meta { border-color: rgba(255,255,255,.1); }
+
+  .vc-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .vc-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(91,110,244,.12); border: 1px solid rgba(91,110,244,.22); color: var(--g-accent-deep); font-size: 12px; font-weight: 600; text-decoration: none; transition: background .15s; }
+  .vc-link:hover { background: rgba(91,110,244,.22); }
+  .vc-link svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  body.theme-dark .vc-link { background: rgba(124,135,255,.2); color: #c2c9ff; border-color: rgba(124,135,255,.3); }
+
+  /* Example links on item detail */
+  .item-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+  /* ---- Cost-table editor (vendor modal) ---- */
+  .cost-editor { border: 1px solid rgba(120,130,160,.24); border-radius: 12px; padding: 11px 11px 4px; background: rgba(255,255,255,.4); }
+  body.theme-dark .cost-editor { border-color: rgba(255,255,255,.16); background: rgba(255,255,255,.04); }
+  .cost-ehead, .cost-erow { display: grid; grid-template-columns: 2fr 1.1fr 1.1fr 34px; gap: 8px; align-items: center; }
+  .cost-ehead { padding: 0 0 6px; }
+  .cost-ehead span { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--g-text-3); }
+  .cost-erow { margin-bottom: 8px; }
+  .cost-erow input { width: 100%; padding: 8px 10px; }
+  .cost-rm { width: 34px; height: 38px; border: 0; background: transparent; color: var(--muted); cursor: pointer; border-radius: 8px; display: grid; place-items: center; }
+  .cost-rm:hover { background: rgba(220,38,38,.12); color: #d23b2c; }
+  .cost-rm svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+  .cost-add { margin: 2px 0 10px; }
+
+  #srcVendorOverlay .modal { max-width: 760px; }
+  #srcVendorOverlay .modal, #srcItemOverlay .modal { max-height: 92vh; overflow-y: auto; }
 </style>
 </head>
 <body>
@@ -2587,84 +2641,114 @@ bootstrap();
 <script type="module">
 // ============================================================
 //  R&D Tracker — Sourcing section
-//  Master list of items we're hunting for → drill into vendors.
-//  Manual entry with add / edit / delete, saved to Firestore
-//  (shared, like products) with a localStorage fallback so the
-//  view stays fully usable offline / in preview.
-//  Loaded as a module AFTER the main Firebase module, so
-//  window.RND_FB is available.
+//  Items we're hunting for → drill into vendor options.
+//  Manual entry (add / edit / delete) saved to Firestore with a
+//  localStorage fallback so it stays usable offline / in preview.
 // ============================================================
 (function () {
   "use strict";
 
   const FB = window.RND_FB || null;
 
-  // ---- Seed defaults (used until real data exists) -----------------------
-  const SEED_ITEMS = [
-    { id: "s1", name: "Motorized Retractable Banner Stand", category: "Displays",    target: 85,   status: "Quoting",  priority: "High", requestedBy: "Chris", date: "2026-05-12", note: "Looking for a quiet, smooth motor with a premium aluminum base. Replaces our manual roll-up line." },
-    { id: "s2", name: "Magnetic Modular Fabric Frame",       category: "Frames",      target: 42,   status: "Sampling", priority: "Med",  requestedBy: "Manny", date: "2026-05-08", note: "Tool-free magnetic SEG corners. Needs to pack flat and ship UPS-friendly." },
-    { id: "s3", name: "Outdoor A-Frame Sidewalk Sign (HD)",  category: "Signage",     target: 60,   status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-19", note: "Heavy-duty, wind-rated. Powder-coated steel preferred over plastic." },
-    { id: "s4", name: "Backlit SEG Light Box · 100mm",       category: "Light Boxes", target: 210,  status: "Quoting",  priority: "Med",  requestedBy: "Jesse", date: "2026-04-30", note: "Edge-lit, even diffusion, 100mm depth. Single-sided to start." },
-    { id: "s5", name: "Tension Fabric Curved Archway",       category: "Displays",    target: 320,  status: "Decided",  priority: "Low",  requestedBy: "Manny", date: "2026-03-22", note: "Decided on Kawa. Moving to first production order." },
-    { id: "s6", name: "Eco Recyclable Cardboard Counter",    category: "Eco",         target: 18,   status: "Sourcing", priority: "Low",  requestedBy: "Chris", date: "2026-05-21", note: "Fully recyclable, printed honeycomb board. Sustainability line." },
-    { id: "s7", name: "Interactive Touch Kiosk Shell · 43\"", category: "Kiosks",      target: 540,  status: "Sampling", priority: "High", requestedBy: "Jesse", date: "2026-05-02", note: "Floor-standing enclosure for a 43\" PCAP panel. Lockable rear access." },
-    { id: "s8", name: "Tradeshow Hanging Ring (Round)",      category: "Hanging",     target: 1100, status: "Quoting",  priority: "Med",  requestedBy: "Manny", date: "2026-05-15", note: "8ft round hanging structure, segmented for shipping. SEG fabric skin." }
-  ];
-  const SEED_VENDORS = [
-    { id: "v1",  itemId: "s1", name: "Shenzhen Brightline", region: "China",    price: 78.5,  moq: 100, lead: 35, sample: "In hand",  rating: 4.5, contact: "lily@brightline.cn",   best: true,  note: "Quiet motor, clean finish. Strong sample." },
-    { id: "v2",  itemId: "s1", name: "Kawa Display",        region: "China",    price: 72.0,  moq: 200, lead: 45, sample: "Requested", rating: 4.0, contact: "sales@kawa.com",       best: false, note: "Lowest unit price but higher MOQ." },
-    { id: "v3",  itemId: "s1", name: "GR Manufacturing",    region: "USA · PA", price: 96.0,  moq: 50,  lead: 21, sample: "In hand",  rating: 4.2, contact: "rfq@grmfg.com",         best: false, note: "Domestic, fastest lead, premium price." },
-    { id: "v4",  itemId: "s2", name: "Shenzhen Youyang",    region: "China",    price: 39.0,  moq: 150, lead: 40, sample: "In hand",  rating: 4.3, contact: "info@youyang.cn",       best: true,  note: "Magnets seated well, corners square." },
-    { id: "v5",  itemId: "s2", name: "Fabricraft",          region: "Mexico",   price: 44.0,  moq: 80,  lead: 25, sample: "Requested", rating: 3.8, contact: "ventas@fabricraft.mx", best: false, note: "Nearshore, lower MOQ." },
-    { id: "v6",  itemId: "s3", name: "Sigma Signs",         region: "China",    price: 55.0,  moq: 200, lead: 38, sample: "None",      rating: 3.9, contact: "kk@sigmasigns.cn",     best: true,  note: "Best price; need to confirm wind rating." },
-    { id: "v7",  itemId: "s3", name: "Durabal",             region: "USA · CA", price: 68.0,  moq: 40,  lead: 18, sample: "In hand",  rating: 4.4, contact: "sales@durabal.com",    best: false, note: "Excellent build, domestic stock." },
-    { id: "v8",  itemId: "s3", name: "Nanjing Metals",      region: "China",    price: 51.0,  moq: 300, lead: 50, sample: "Requested", rating: 3.5, contact: "export@njmetals.cn",   best: false, note: "Cheapest but big MOQ + long lead." },
-    { id: "v9",  itemId: "s4", name: "LumenPro",            region: "China",    price: 198.0, moq: 60,  lead: 42, sample: "In hand",  rating: 4.6, contact: "joy@lumenpro.cn",      best: true,  note: "Most even diffusion of the three." },
-    { id: "v10", itemId: "s4", name: "BrightEdge",          region: "China",    price: 221.0, moq: 50,  lead: 40, sample: "Requested", rating: 4.1, contact: "sales@brightedge.cn", best: false, note: "Slightly pricier, lower MOQ." },
-    { id: "v11", itemId: "s5", name: "Kawa Display",        region: "China",    price: 305.0, moq: 30,  lead: 48, sample: "In hand",  rating: 4.5, contact: "sales@kawa.com",       best: true,  note: "Selected vendor — production order in progress." },
-    { id: "v12", itemId: "s6", name: "GreenCorr",           region: "China",    price: 16.5,  moq: 500, lead: 30, sample: "Requested", rating: 4.0, contact: "eco@greencorr.cn",     best: true,  note: "FSC board, water-based ink." },
-    { id: "v13", itemId: "s6", name: "EcoPack MX",          region: "Mexico",   price: 19.0,  moq: 250, lead: 20, sample: "None",      rating: 3.7, contact: "hola@ecopack.mx",      best: false, note: "Nearshore, faster, smaller runs." },
-    { id: "v14", itemId: "s7", name: "TouchWorks",          region: "China",    price: 520.0, moq: 20,  lead: 55, sample: "Requested", rating: 4.2, contact: "ada@touchworks.cn",    best: true,  note: "Best value enclosure; PCAP integration optional." },
-    { id: "v15", itemId: "s7", name: "DisplayTech",         region: "China",    price: 560.0, moq: 25,  lead: 50, sample: "None",      rating: 4.0, contact: "sales@displaytech.cn", best: false, note: "Solid, slightly higher cost." },
-    { id: "v16", itemId: "s7", name: "MetalForm CA",        region: "USA · CA", price: 640.0, moq: 10,  lead: 28, sample: "In hand",  rating: 4.4, contact: "quotes@metalform.com", best: false, note: "Domestic fabrication, low MOQ." },
-    { id: "v17", itemId: "s8", name: "AeroRig",             region: "China",    price: 1080.0,moq: 5,   lead: 60, sample: "None",      rating: 3.9, contact: "rfq@aerorig.cn",       best: true,  note: "Lightest segmented design." },
-    { id: "v18", itemId: "s8", name: "SkyStruct",           region: "China",    price: 1150.0,moq: 5,   lead: 58, sample: "Requested", rating: 4.1, contact: "sales@skystruct.cn",   best: false, note: "Heavier-duty hub, higher price." }
+  // ---- Option lists ------------------------------------------------------
+  const CATEGORIES = ["Displays", "Frames", "Signage", "Light Boxes", "Kiosks", "Hanging", "Eco", "Printing", "Hardware", "MFG", "Finishing", "Warehouse"];
+  const ITEM_STATUSES = ["Sourcing", "Quoting", "Sampling", "Decided"];
+  const PRIORITIES = ["High", "Med", "Low"];
+  // Vendor status — exact list provided by WS Display
+  const V_STATUSES = [
+    "Vendor Replied",
+    "Received Product Info/Pricing",
+    "Sample Ordered",
+    "Testing",
+    "Reviewing",
+    "Rejected - Price",
+    "Rejected - Other Vendor",
+    "Rejected - Quality",
+    "Sample Approved"
   ];
 
-  const CATEGORIES = ["Displays", "Frames", "Signage", "Light Boxes", "Kiosks", "Hanging", "Eco", "Printing", "Hardware"];
-  const STATUSES = ["Sourcing", "Quoting", "Sampling", "Decided"];
-  const PRIORITIES = ["High", "Med", "Low"];
-  const SAMPLES = ["None", "Requested", "In hand"];
+  // ---- Seed defaults (placeholder until real data is entered) ------------
+  const SEED_ITEMS = [
+    { id: "s1", name: "Motorized Retractable Banner Stand", category: "Displays",    target: 85,   status: "Quoting",  priority: "High", requestedBy: "Chris", date: "2026-05-12", note: "Quiet, smooth motor with a premium aluminum base. Replaces our manual roll-up line.", links: "https://www.alibaba.com/showroom/motorized-banner-stand.html" },
+    { id: "s2", name: "Magnetic Modular Fabric Frame",       category: "Frames",      target: 42,   status: "Sampling", priority: "Med",  requestedBy: "Manny", date: "2026-05-08", note: "Tool-free magnetic SEG corners. Packs flat, ships UPS-friendly.", links: "" },
+    { id: "s3", name: "Outdoor A-Frame Sidewalk Sign (HD)",  category: "Signage",     target: 60,   status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-19", note: "Heavy-duty, wind-rated. Powder-coated steel preferred over plastic.", links: "" },
+    { id: "s4", name: "Backlit SEG Light Box · 100mm",       category: "Light Boxes", target: 210,  status: "Quoting",  priority: "Med",  requestedBy: "Jesse", date: "2026-04-30", note: "Edge-lit, even diffusion, 100mm depth. Single-sided to start.", links: "" },
+    { id: "s5", name: "Powder-Coat Finishing Service",       category: "Finishing",   target: 0,    status: "Sourcing", priority: "Med",  requestedBy: "Manny", date: "2026-05-24", note: "Local powder-coat partner for aluminum extrusions. Color matching required.", links: "" },
+    { id: "s6", name: "3PL Warehouse · West Coast",          category: "Warehouse",   target: 0,    status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-21", note: "Fulfillment + light kitting near the Port of LA. Receiving and pick/pack.", links: "" }
+  ];
+
+  const SEED_VENDORS = [
+    {
+      id: "v1", itemId: "s1", product: "Electric Roll-Up Banner (Premium)", vendor: "Shenzhen Brightline",
+      status: "Sample Approved", description: "Brushed aluminum base, near-silent motor, remote + app control. Best sample of the batch.",
+      costRows: [
+        { variation: "33in × 79in", qty: "1–49", price: 96 },
+        { variation: "33in × 79in", qty: "50–199", price: 84 },
+        { variation: "33in × 79in", qty: "200+", price: 78.5 }
+      ],
+      moq: 100, sampleCost: 120, sampleShipCA: 48, sampleShipHawk: 22, sampleLead: "7 days", orderLead: "30–35 days",
+      linkVendor: "https://www.alibaba.com/product-detail/brightline-motorized.html", linkCatalog: "", linkMedia: ""
+    },
+    {
+      id: "v2", itemId: "s1", product: "Auto Roll Banner Stand", vendor: "Kawa Display",
+      status: "Received Product Info/Pricing", description: "Lower unit price at volume but a higher MOQ and longer lead. Motor slightly louder.",
+      costRows: [
+        { variation: "Standard", qty: "100–499", price: 79 },
+        { variation: "Standard", qty: "500+", price: 72 }
+      ],
+      moq: 200, sampleCost: 95, sampleShipCA: 40, sampleShipHawk: 20, sampleLead: "10 days", orderLead: "40–45 days",
+      linkVendor: "https://www.kawadisplay.com", linkCatalog: "", linkMedia: ""
+    },
+    {
+      id: "v3", itemId: "s1", product: "Domestic Motorized Stand", vendor: "GR Manufacturing",
+      status: "Rejected - Price", description: "Excellent build and fastest lead, but priced well above target. Holding as a domestic backup.",
+      costRows: [{ variation: "33in × 79in", qty: "1+", price: 96 }],
+      moq: 50, sampleCost: 0, sampleShipCA: 0, sampleShipHawk: 0, sampleLead: "In stock", orderLead: "21 days",
+      linkVendor: "", linkCatalog: "", linkMedia: ""
+    },
+    {
+      id: "v4", itemId: "s2", product: "Magnetic SEG Frame Kit", vendor: "Shenzhen Youyang",
+      status: "Testing", description: "Magnets seat cleanly, corners square. Currently stress-testing the magnetic joints.",
+      costRows: [
+        { variation: "24in × 36in", qty: "1–99", price: 44 },
+        { variation: "24in × 36in", qty: "100+", price: 39 }
+      ],
+      moq: 150, sampleCost: 60, sampleShipCA: 35, sampleShipHawk: 18, sampleLead: "8 days", orderLead: "38–42 days",
+      linkVendor: "https://www.alibaba.com/product-detail/youyang-seg-frame.html", linkCatalog: "", linkMedia: ""
+    },
+    {
+      id: "v5", itemId: "s4", product: "100mm Edge-Lit SEG Light Box", vendor: "LumenPro",
+      status: "Sample Ordered", description: "Most even diffusion of the candidates. Sample on the way.",
+      costRows: [
+        { variation: "Single-sided 2×3m", qty: "1–9", price: 221 },
+        { variation: "Single-sided 2×3m", qty: "10+", price: 198 }
+      ],
+      moq: 60, sampleCost: 240, sampleShipCA: 120, sampleShipHawk: 70, sampleLead: "12 days", orderLead: "40–45 days",
+      linkVendor: "https://www.lumenpro.cn", linkCatalog: "", linkMedia: ""
+    }
+  ];
 
   // ---- State + persistence ----------------------------------------------
-  const LS_I = "rnd_src_items", LS_V = "rnd_src_vendors";
-  function lsLoad(k, def) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : def.map(o => ({ ...o })); } catch (e) { return def.map(o => ({ ...o })); } }
+  const LS_I = "rnd_src_items_v2", LS_V = "rnd_src_vendors_v2";
+  function lsLoad(k, def) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : def.map((o) => ({ ...o })); } catch (e) { return def.map((o) => ({ ...o })); } }
   function lsSave() { try { localStorage.setItem(LS_I, JSON.stringify(items)); localStorage.setItem(LS_V, JSON.stringify(vendors)); } catch (e) {} }
 
   let items = lsLoad(LS_I, SEED_ITEMS);
   let vendors = lsLoad(LS_V, SEED_VENDORS);
 
   // ---- Firestore layer (optional) ---------------------------------------
-  let itemsCol = null, vendorsCol = null, fbReady = false;
+  let itemsCol = null, vendorsCol = null;
   if (FB) {
     try {
       itemsCol = FB.collection(FB.db, "sourcingItems");
       vendorsCol = FB.collection(FB.db, "sourcingVendors");
-      FB.onSnapshot(itemsCol, (snap) => {
-        fbReady = true;
-        items = snap.docs.map((d) => d.data());
-        lsSave(); rerender();
-      }, (err) => console.warn("[sourcing] items snapshot — using local fallback.", err.message));
-      FB.onSnapshot(vendorsCol, (snap) => {
-        fbReady = true;
-        vendors = snap.docs.map((d) => d.data());
-        lsSave(); rerender();
-      }, (err) => console.warn("[sourcing] vendors snapshot — using local fallback.", err.message));
-    } catch (e) {
-      console.warn("[sourcing] Firestore unavailable — using local storage.", e.message);
-      itemsCol = vendorsCol = null;
-    }
+      FB.onSnapshot(itemsCol, (snap) => { if (!snap.empty) { items = snap.docs.map((d) => d.data()); lsSave(); rerender(); } },
+        (err) => console.warn("[sourcing] items snapshot — local fallback.", err.message));
+      FB.onSnapshot(vendorsCol, (snap) => { if (!snap.empty) { vendors = snap.docs.map((d) => d.data()); lsSave(); rerender(); } },
+        (err) => console.warn("[sourcing] vendors snapshot — local fallback.", err.message));
+    } catch (e) { console.warn("[sourcing] Firestore unavailable — local storage.", e.message); itemsCol = vendorsCol = null; }
   }
+  function upsert(arr, obj) { const i = arr.findIndex((x) => x.id === obj.id); if (i >= 0) { const c = arr.slice(); c[i] = obj; return c; } return arr.concat([obj]); }
   async function saveItem(it) { items = upsert(items, it); lsSave(); rerender(); if (itemsCol) { try { await FB.setDoc(FB.doc(itemsCol, it.id), it); } catch (e) { console.warn(e); } } }
   async function removeItem(id) {
     items = items.filter((x) => x.id !== id);
@@ -2675,27 +2759,47 @@ bootstrap();
   }
   async function saveVendor(v) { vendors = upsert(vendors, v); lsSave(); rerender(); if (vendorsCol) { try { await FB.setDoc(FB.doc(vendorsCol, v.id), v); } catch (e) { console.warn(e); } } }
   async function removeVendor(id) { vendors = vendors.filter((x) => x.id !== id); lsSave(); rerender(); if (vendorsCol) { try { await FB.deleteDoc(FB.doc(vendorsCol, id)); } catch (e) { console.warn(e); } } }
-  function upsert(arr, obj) { const i = arr.findIndex((x) => x.id === obj.id); if (i >= 0) { const c = arr.slice(); c[i] = obj; return c; } return arr.concat([obj]); }
 
   // ---- Helpers -----------------------------------------------------------
   const $ = (id) => document.getElementById(id);
   const uid = (p) => p + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
   const money = (n) => "$" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: (n % 1 ? 2 : 0), maximumFractionDigits: 2 });
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  function fmtDate(d) { if (!d) return "—"; const t = new Date(d + "T12:00:00"); return isNaN(t) ? esc(d) : t.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+
   const statusChipClass = (s) => ({ Sourcing: "gray", Quoting: "", Sampling: "amber", Decided: "green" }[s] ?? "");
   const prioChipClass = (p) => ({ High: "prio-high", Med: "prio-med", Low: "prio-low" }[p] ?? "prio-low");
-  const sampleChipClass = (s) => ({ "In hand": "green", "Requested": "amber", "None": "gray" }[s] ?? "gray");
+  function vStatusChip(s) {
+    if (/^Rejected/i.test(s)) return "red";
+    if (s === "Sample Approved") return "green";
+    if (s === "Sample Ordered" || s === "Testing") return "amber";
+    if (s === "Vendor Replied") return "gray";
+    return ""; // Received Product Info/Pricing, Reviewing → indigo default
+  }
+
   const vendorsFor = (id) => vendors.filter((v) => v.itemId === id);
-  const lowestQuote = (id) => { const v = vendorsFor(id); return v.length ? Math.min(...v.map((x) => x.price)) : null; };
-  const fastestLead = (id) => { const v = vendorsFor(id); return v.length ? Math.min(...v.map((x) => x.lead)) : null; };
-  const samplesIn = (id) => vendorsFor(id).filter((v) => v.sample === "In hand").length;
-  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
-  function stars(r) { let o = ""; for (let i = 1; i <= 5; i++) o += `<span class="${i <= Math.round(r) ? "" : "off"}">★</span>`; return `<span class="rating" title="${Number(r).toFixed(1)} / 5">${o}</span>`; }
-  function fmtDate(d) { if (!d) return "—"; return new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
-  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const rowPrices = (v) => (v.costRows || []).map((r) => Number(r.price)).filter((n) => n > 0);
+  const vendorMin = (v) => { const p = rowPrices(v); return p.length ? Math.min(...p) : null; };
+  const lowestQuote = (id) => { const xs = vendorsFor(id).map(vendorMin).filter((n) => n != null); return xs.length ? Math.min(...xs) : null; };
+  const approvedCount = (id) => vendorsFor(id).filter((v) => v.status === "Sample Approved").length;
+  const rejectedCount = (id) => vendorsFor(id).filter((v) => /^Rejected/i.test(v.status)).length;
+
+  // links: split a free-text field into individual URLs
+  function parseLinks(s) { return String(s || "").split(/[\s,]+/).map((x) => x.trim()).filter(Boolean); }
+  function linkLabel(url) { try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url.length > 28 ? url.slice(0, 28) + "…" : url; } }
+  function safeHref(url) { return /^https?:\/\//i.test(url) ? url : "https://" + url; }
+  const ICON_LINK = '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+  function linkPill(url, label, icon) {
+    if (!url) return "";
+    return `<a class="vc-link" href="${esc(safeHref(url))}" target="_blank" rel="noopener">${icon || ICON_LINK}${esc(label || linkLabel(url))}</a>`;
+  }
 
   const ICON_BOX = '<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>';
   const ICON_PENCIL = '<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const ICON_TRASH = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  const ICON_DOC = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  const ICON_MEDIA = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
 
   let toastTimer;
   function toast(msg) { const t = $("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200); }
@@ -2703,15 +2807,15 @@ bootstrap();
   // ---- Render: master ----------------------------------------------------
   function renderStats() {
     const totalVendors = vendors.length;
-    const quotes = vendors.filter((x) => x.sample !== "None").length;
-    const decisionsPending = items.filter((i) => i.status !== "Decided").length;
+    const approved = vendors.filter((v) => v.status === "Sample Approved").length;
+    const rejected = vendors.filter((v) => /^Rejected/i.test(v.status)).length;
     const avg = items.length ? (totalVendors / items.length).toFixed(1) : "0";
     const cards = [
       { label: "Items Sourcing", value: items.length },
       { label: "Vendors Logged", value: totalVendors },
-      { label: "Quotes / Samples", value: quotes },
+      { label: "Samples Approved", value: approved },
       { label: "Avg Vendors / Item", value: avg },
-      { label: "Decisions Pending", value: decisionsPending }
+      { label: "Rejected", value: rejected }
     ];
     $("sourcingStats").innerHTML = cards.map((c) => `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join("");
   }
@@ -2720,13 +2824,10 @@ bootstrap();
     const q = (filter || "").trim().toLowerCase();
     const rows = items.filter((i) => !q || i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q));
     const grid = $("itemGrid");
-    if (!items.length) {
-      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">No sourcing items yet.</div>Click <b>Add Item</b> to start tracking something you're hunting for.</div>`;
-      return;
-    }
+    if (!items.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">No sourcing items yet.</div>Click <b>Add Item</b> to start tracking something you're hunting for.</div>`; return; }
     if (!rows.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">No items match “${esc(filter)}”.</div>Try a different search.</div>`; return; }
     grid.innerHTML = rows.map((i) => {
-      const n = vendorsFor(i.id).length, low = lowestQuote(i.id), lead = fastestLead(i.id);
+      const n = vendorsFor(i.id).length, low = lowestQuote(i.id), appr = approvedCount(i.id);
       return `
       <div class="item-card" data-id="${i.id}" role="button" tabindex="0">
         <button class="item-edit" data-edit="${i.id}" title="Edit item" aria-label="Edit item">${ICON_PENCIL}</button>
@@ -2743,9 +2844,9 @@ bootstrap();
         </div>
         <div class="item-divider"></div>
         <div class="item-meta">
-          <div><div class="m-label">Target Cost</div><div class="m-val">${money(i.target)}</div></div>
+          <div><div class="m-label">Target Cost</div><div class="m-val">${i.target ? money(i.target) : "—"}</div></div>
           <div><div class="m-label">Best Quote</div><div class="m-val">${low != null ? money(low) : "—"}</div></div>
-          <div><div class="m-label">Fastest Lead</div><div class="m-val">${lead != null ? lead + " days" : "—"}</div></div>
+          <div><div class="m-label">Approved</div><div class="m-val">${appr || "—"}</div></div>
           <div><div class="m-label">Requested By</div><div class="m-val">${esc(i.requestedBy) || "—"}</div></div>
         </div>
         <div class="item-foot">
@@ -2764,30 +2865,71 @@ bootstrap();
   }
 
   // ---- Render: detail ----------------------------------------------------
+  function costTableHTML(v) {
+    const rows = (v.costRows || []).filter((r) => r.variation || r.qty || r.price);
+    if (!rows.length) return "";
+    const body = rows.map((r) => `<tr><td>${esc(r.variation) || "—"}</td><td>${esc(r.qty) || "—"}</td><td class="price">${r.price ? money(r.price) : "—"}</td></tr>`).join("");
+    return `<table class="cost-table"><caption>Cost Table</caption>
+      <thead><tr><th>Variation</th><th>Qty Break</th><th>Unit Price</th></tr></thead>
+      <tbody>${body}</tbody></table>`;
+  }
+  function vcMetaHTML(v) {
+    const cells = [
+      ["MOQ", v.moq ? Number(v.moq).toLocaleString() : "—"],
+      ["Sample Cost", v.sampleCost ? money(v.sampleCost) : "—"],
+      ["Sample Ship · CA", v.sampleShipCA ? money(v.sampleShipCA) : "—"],
+      ["Sample Ship · Hawk", v.sampleShipHawk ? money(v.sampleShipHawk) : "—"],
+      ["Sample Lead", esc(v.sampleLead) || "—"],
+      ["Order Lead", esc(v.orderLead) || "—"]
+    ];
+    return `<div class="vc-meta">${cells.map(([l, val]) => `<div><div class="m-label">${l}</div><div class="m-val">${val}</div></div>`).join("")}</div>`;
+  }
+  function vcLinksHTML(v) {
+    const ls = [linkPill(v.linkVendor, null, ICON_LINK), linkPill(v.linkCatalog, "Catalog / Pricing", ICON_DOC), linkPill(v.linkMedia, "Images / Video", ICON_MEDIA)].filter(Boolean).join("");
+    return ls ? `<div class="vc-links">${ls}</div>` : "";
+  }
+  function vendorCardHTML(v) {
+    const cls = v.status === "Sample Approved" ? " approved" : (/^Rejected/i.test(v.status) ? " rejected" : "");
+    return `
+    <div class="vendor-card${cls}">
+      <div class="vc-head">
+        <div style="min-width:0;">
+          <div class="vc-product">${esc(v.product) || "Untitled product"}</div>
+          <div class="vc-vendor">${esc(v.vendor) || "—"}</div>
+        </div>
+        <div class="vc-head-right">
+          <span class="chip ${vStatusChip(v.status)}">${esc(v.status)}</span>
+          <button class="btn small" data-ved="${v.id}">Edit</button>
+          <button class="btn small danger" data-vdel="${v.id}" title="Delete">${ICON_TRASH}</button>
+        </div>
+      </div>
+      ${v.description ? `<div class="vc-desc">${esc(v.description)}</div>` : ""}
+      ${costTableHTML(v)}
+      ${vcMetaHTML(v)}
+      ${vcLinksHTML(v)}
+    </div>`;
+  }
+
   function renderDetail(id) {
     const item = items.find((i) => i.id === id);
     if (!item) { renderMaster(); return; }
-    const vs = vendorsFor(id).slice().sort((a, b) => (b.best - a.best) || (a.price - b.price));
-    const low = lowestQuote(id), lead = fastestLead(id);
+    const vs = vendorsFor(id).slice().sort((a, b) => {
+      const rank = (x) => x.status === "Sample Approved" ? 0 : (/^Rejected/i.test(x.status) ? 2 : 1);
+      return rank(a) - rank(b) || ((vendorMin(a) ?? 1e12) - (vendorMin(b) ?? 1e12));
+    });
+    const low = lowestQuote(id);
     const mini = [
       { label: "Vendors Found", value: vs.length },
       { label: "Lowest Quote", value: low != null ? money(low) : "—" },
-      { label: "Fastest Lead", value: lead != null ? lead + " days" : "—" },
-      { label: "Samples In Hand", value: samplesIn(id) }
+      { label: "Approved", value: approvedCount(id) },
+      { label: "Rejected", value: rejectedCount(id) }
     ].map((c) => `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join("");
 
-    const rows = vs.length ? vs.map((v) => `
-      <tr class="product-row vendor-row${v.best ? " best" : ""}">
-        <td><div class="vname">${esc(v.name)}${v.best ? ' <span class="chip" style="margin-left:6px;">Best fit</span>' : ""}</div><div class="m-label" style="margin-top:4px;">${esc(v.contact)}</div></td>
-        <td>${esc(v.region)}</td>
-        <td class="num-cell"><strong>${money(v.price)}</strong></td>
-        <td class="num-cell">${Number(v.moq || 0).toLocaleString()}</td>
-        <td class="num-cell">${v.lead} days</td>
-        <td><span class="chip ${sampleChipClass(v.sample)}">${esc(v.sample)}</span></td>
-        <td>${stars(v.rating)}</td>
-        <td class="comments-cell" style="max-width:240px;">${esc(v.note)}</td>
-        <td><div class="vendor-actions"><button class="btn small" data-ved="${v.id}">Edit</button><button class="btn small danger" data-vdel="${v.id}" title="Delete">${ICON_TRASH}</button></div></td>
-      </tr>`).join("") : `<tr><td colspan="9"><div class="empty" style="padding:34px 10px;"><div class="big">No vendors logged yet.</div>Click <b>Add Vendor</b> to record your first quote.</div></td></tr>`;
+    const itemLinks = parseLinks(item.links);
+    const itemLinksHTML = itemLinks.length ? `<div class="item-links">${itemLinks.map((u) => linkPill(u)).join("")}</div>` : "";
+
+    const cards = vs.length ? `<div class="vendor-list">${vs.map(vendorCardHTML).join("")}</div>`
+      : `<div class="empty" style="padding:40px 10px;"><div class="big">No vendors logged yet.</div>Click <b>Add Vendor</b> to record the first option.</div>`;
 
     $("sourcingDetail").innerHTML = `
       <button class="back-link" id="backLink"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> All sourcing items</button>
@@ -2801,62 +2943,71 @@ bootstrap();
             <span class="chip ${prioChipClass(item.priority)}">${esc(item.priority)} priority</span>
             <button class="btn small" id="editItemBtn" style="margin-left:4px;">Edit item</button>
           </div>
-          <div class="detail-note">${esc(item.note)}</div>
+          ${item.note ? `<div class="detail-note">${esc(item.note)}</div>` : ""}
           <div class="detail-meta-row">
-            <div class="dm"><div class="dm-l">Target Cost</div><div class="dm-v">${money(item.target)}</div></div>
+            <div class="dm"><div class="dm-l">Target Cost</div><div class="dm-v">${item.target ? money(item.target) : "—"}</div></div>
             <div class="dm"><div class="dm-l">Requested By</div><div class="dm-v">${esc(item.requestedBy) || "—"}</div></div>
             <div class="dm"><div class="dm-l">Date Added</div><div class="dm-v">${fmtDate(item.date)}</div></div>
           </div>
+          ${itemLinksHTML}
         </div>
       </div>
       <section class="mini-stats">${mini}</section>
       <div class="toolbar">
-        <div class="section-label">Vendors found for this item</div>
+        <div class="section-label">Vendor options for this item</div>
         <button class="btn primary" id="addVendorBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Vendor</button>
       </div>
-      <table class="products">
-        <thead><tr><th>Vendor</th><th>Region</th><th>Unit Price</th><th>MOQ</th><th>Lead Time</th><th>Sample</th><th>Rating</th><th>Notes</th><th style="text-align:right;">Actions</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+      ${cards}`;
 
     $("sourcingMaster").hidden = true;
     $("sourcingDetail").hidden = false;
-
     $("backLink").addEventListener("click", showMaster);
     $("editItemBtn").addEventListener("click", () => openItemModal(item));
     $("addVendorBtn").addEventListener("click", () => openVendorModal(null, id));
     $("sourcingDetail").querySelectorAll("[data-ved]").forEach((b) => b.addEventListener("click", () => openVendorModal(vendors.find((v) => v.id === b.dataset.ved), id)));
     $("sourcingDetail").querySelectorAll("[data-vdel]").forEach((b) => b.addEventListener("click", () => {
       const v = vendors.find((x) => x.id === b.dataset.vdel);
-      if (v && confirm(`Delete vendor “${v.name}”?`)) removeVendor(v.id);
+      if (v && confirm(`Delete vendor option “${v.product || v.vendor}”?`)) removeVendor(v.id);
     }));
   }
 
   // ---- View routing ------------------------------------------------------
-  let currentView = "tracker";   // "tracker" (dashboard) | "sourcing"
-  let currentItemId = null;
-
-  function rerender() {
-    if (currentView !== "sourcing") return;
-    if (currentItemId) renderDetail(currentItemId); else renderMaster();
-  }
+  let currentView = "tracker", currentItemId = null;
+  function rerender() { if (currentView !== "sourcing") return; if (currentItemId) renderDetail(currentItemId); else renderMaster(); }
   function showMaster() { currentItemId = null; renderMaster(); window.scrollTo({ top: 0 }); }
   function showDetail(id) { currentItemId = id; renderDetail(id); window.scrollTo({ top: 0 }); }
   function setView(view) {
-    currentView = view;
+    currentView = (view === "sourcing") ? "sourcing" : "tracker";
     document.querySelectorAll("#viewSwitch button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
     document.getElementById("view-dashboard").hidden = (view !== "dashboard");
     document.getElementById("view-sourcing").hidden = (view !== "sourcing");
-    if (view === "sourcing") { currentView = "sourcing"; showMaster(); }
+    if (view === "sourcing") showMaster();
     window.scrollTo({ top: 0 });
   }
-  // nav uses data-view="dashboard" for the Tracker button; normalize
   document.querySelectorAll("#viewSwitch button").forEach((b) =>
     b.addEventListener("click", () => setView(b.dataset.view === "sourcing" ? "sourcing" : "dashboard")));
-  // keep internal name consistent: dashboard button → currentView "tracker" when not sourcing
-  function syncCurrent() { currentView = document.getElementById("view-sourcing").hidden ? "tracker" : "sourcing"; }
 
-  // ---- Modals (injected) -------------------------------------------------
+  // ---- Cost-table editor (in vendor modal) -------------------------------
+  let editRows = [];
+  function renderEditRows() {
+    const box = $("sv-cost-rows");
+    box.innerHTML = editRows.map((r, idx) => `
+      <div class="cost-erow" data-idx="${idx}">
+        <input data-f="variation" placeholder="e.g. 24×36 / Black" value="${esc(r.variation)}" />
+        <input data-f="qty" placeholder="e.g. 1–99" value="${esc(r.qty)}" />
+        <input data-f="price" type="number" step="0.01" min="0" placeholder="0.00" value="${r.price === 0 || r.price ? r.price : ""}" />
+        <button type="button" class="cost-rm" data-rm="${idx}" title="Remove line">${ICON_TRASH}</button>
+      </div>`).join("");
+    box.querySelectorAll(".cost-erow").forEach((row) => {
+      const idx = +row.dataset.idx;
+      row.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
+        editRows[idx][inp.dataset.f] = inp.dataset.f === "price" ? (parseFloat(inp.value) || 0) : inp.value;
+      }));
+    });
+    box.querySelectorAll("[data-rm]").forEach((b) => b.addEventListener("click", () => { editRows.splice(+b.dataset.rm, 1); if (!editRows.length) editRows.push({ variation: "", qty: "", price: 0 }); renderEditRows(); }));
+  }
+
+  // ---- Modals ------------------------------------------------------------
   function injectModals() {
     const wrap = document.createElement("div");
     wrap.innerHTML = `
@@ -2870,7 +3021,7 @@ bootstrap();
           </div>
           <div class="form-row">
             <div class="field"><label for="si-category">Category</label><input id="si-category" list="si-cat-list" maxlength="40" placeholder="e.g. Displays" /><datalist id="si-cat-list">${CATEGORIES.map((c) => `<option value="${c}">`).join("")}</datalist></div>
-            <div class="field"><label for="si-status">Status</label><select id="si-status">${STATUSES.map((s) => `<option>${s}</option>`).join("")}</select></div>
+            <div class="field"><label for="si-status">Status</label><select id="si-status">${ITEM_STATUSES.map((s) => `<option>${s}</option>`).join("")}</select></div>
             <div class="field"><label for="si-priority">Priority</label><select id="si-priority">${PRIORITIES.map((s) => `<option>${s}</option>`).join("")}</select></div>
           </div>
           <div class="form-row">
@@ -2878,6 +3029,7 @@ bootstrap();
             <div class="field"><label for="si-date">Date Added</label><input id="si-date" type="date" /></div>
           </div>
           <div class="form-row"><div class="field"><label for="si-note">Note</label><textarea id="si-note" maxlength="800" placeholder="What you're looking for, requirements, blockers…"></textarea></div></div>
+          <div class="form-row"><div class="field"><label for="si-links">Example Links</label><textarea id="si-links" maxlength="1200" placeholder="Paste reference links — Alibaba listings, competitor products, inspiration. One per line."></textarea></div></div>
           <div class="modal-actions">
             <div class="left"><button type="button" class="btn danger" id="si-delete" style="display:none;">Delete</button></div>
             <div class="right"><button type="button" class="btn" id="si-cancel">Cancel</button><button type="submit" class="btn primary">Save Item</button></div>
@@ -2890,21 +3042,39 @@ bootstrap();
         <form id="srcVendorForm">
           <input type="hidden" id="sv-id" /><input type="hidden" id="sv-item" />
           <div class="form-row">
-            <div class="field" style="flex:2;"><label for="sv-name">Vendor Name</label><input id="sv-name" required maxlength="80" placeholder="e.g. Shenzhen Brightline" /></div>
-            <div class="field"><label for="sv-region">Region</label><input id="sv-region" maxlength="40" placeholder="e.g. China / USA · CA" /></div>
+            <div class="field" style="flex:2;"><label for="sv-product">Product</label><input id="sv-product" required maxlength="120" placeholder="e.g. Electric Roll-Up Banner (Premium)" /></div>
+            <div class="field"><label for="sv-status">Status</label><select id="sv-status">${V_STATUSES.map((s) => `<option>${s}</option>`).join("")}</select></div>
           </div>
           <div class="form-row">
-            <div class="field"><label for="sv-price">Unit Price (USD)</label><input id="sv-price" type="number" step="0.01" min="0" placeholder="0.00" /></div>
+            <div class="field"><label for="sv-vendor">Vendor</label><input id="sv-vendor" maxlength="90" placeholder="e.g. Shenzhen Brightline" /></div>
+          </div>
+          <div class="form-row"><div class="field"><label for="sv-desc">Description</label><textarea id="sv-desc" maxlength="800" placeholder="Materials, quality notes, terms, observations…"></textarea></div></div>
+
+          <div class="form-row"><div class="field">
+            <label>Cost Table <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— add a line per variation / qty break</span></label>
+            <div class="cost-editor">
+              <div class="cost-ehead"><span>Variation</span><span>Qty Break</span><span>Unit Price</span><span></span></div>
+              <div id="sv-cost-rows"></div>
+              <button type="button" class="btn small cost-add" id="sv-add-cost">+ Add line</button>
+            </div>
+          </div></div>
+
+          <div class="form-row">
             <div class="field"><label for="sv-moq">MOQ</label><input id="sv-moq" type="number" step="1" min="0" placeholder="0" /></div>
-            <div class="field"><label for="sv-lead">Lead Time (days)</label><input id="sv-lead" type="number" step="1" min="0" placeholder="0" /></div>
+            <div class="field"><label for="sv-sampleCost">Sample Cost (USD)</label><input id="sv-sampleCost" type="number" step="0.01" min="0" placeholder="0.00" /></div>
           </div>
           <div class="form-row">
-            <div class="field"><label for="sv-sample">Sample Status</label><select id="sv-sample">${SAMPLES.map((s) => `<option>${s}</option>`).join("")}</select></div>
-            <div class="field"><label for="sv-rating">Rating (0–5)</label><input id="sv-rating" type="number" step="0.1" min="0" max="5" placeholder="4.0" /></div>
-            <div class="field"><label for="sv-contact">Contact</label><input id="sv-contact" maxlength="80" placeholder="email or name" /></div>
+            <div class="field"><label for="sv-shipCA">Sample Shipping · CA (USD)</label><input id="sv-shipCA" type="number" step="0.01" min="0" placeholder="0.00" /></div>
+            <div class="field"><label for="sv-shipHawk">Sample Shipping · Hawk Consolidate (USD)</label><input id="sv-shipHawk" type="number" step="0.01" min="0" placeholder="0.00" /></div>
           </div>
-          <div class="form-row"><div class="field"><label for="sv-note">Note</label><textarea id="sv-note" maxlength="600" placeholder="Quality, terms, observations…"></textarea></div></div>
-          <div class="form-row"><div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;"><input type="checkbox" id="sv-best" style="width:auto;" /> Mark as recommended / best fit</label></div></div>
+          <div class="form-row">
+            <div class="field"><label for="sv-sampleLead">Sample Lead Time</label><input id="sv-sampleLead" maxlength="40" placeholder="e.g. 7 days" /></div>
+            <div class="field"><label for="sv-orderLead">QTY Order Lead Time</label><input id="sv-orderLead" maxlength="40" placeholder="e.g. 30–35 days" /></div>
+          </div>
+          <div class="form-row"><div class="field"><label for="sv-linkVendor">Link · Alibaba / Vendor Website</label><input id="sv-linkVendor" maxlength="400" placeholder="https://…" /></div></div>
+          <div class="form-row"><div class="field"><label for="sv-linkCatalog">Link · Catalog / Price List</label><input id="sv-linkCatalog" maxlength="400" placeholder="https://…" /></div></div>
+          <div class="form-row"><div class="field"><label for="sv-linkMedia">Link · Images / Videos</label><input id="sv-linkMedia" maxlength="400" placeholder="https://…" /></div></div>
+
           <div class="modal-actions">
             <div class="left"><button type="button" class="btn danger" id="sv-delete" style="display:none;">Delete</button></div>
             <div class="right"><button type="button" class="btn" id="sv-cancel">Cancel</button><button type="submit" class="btn primary">Save Vendor</button></div>
@@ -2916,37 +3086,41 @@ bootstrap();
   }
 
   function openItemModal(item) {
-    const ov = $("srcItemOverlay");
     $("srcItemTitle").textContent = item ? "Edit Item" : "Add Item";
     $("si-id").value = item ? item.id : "";
     $("si-name").value = item ? item.name : "";
-    $("si-target").value = item ? item.target : "";
+    $("si-target").value = item && item.target ? item.target : "";
     $("si-category").value = item ? (item.category || "") : "";
     $("si-status").value = item ? item.status : "Sourcing";
     $("si-priority").value = item ? item.priority : "Med";
     $("si-by").value = item ? (item.requestedBy || "") : "";
     $("si-date").value = item ? (item.date || todayISO()) : todayISO();
     $("si-note").value = item ? (item.note || "") : "";
+    $("si-links").value = item ? (item.links || "") : "";
     $("si-delete").style.display = item ? "" : "none";
-    ov.classList.add("show");
+    $("srcItemOverlay").classList.add("show");
   }
   function openVendorModal(v, itemId) {
-    const ov = $("srcVendorOverlay");
     $("srcVendorTitle").textContent = v ? "Edit Vendor" : "Add Vendor";
     $("sv-id").value = v ? v.id : "";
     $("sv-item").value = v ? v.itemId : itemId;
-    $("sv-name").value = v ? v.name : "";
-    $("sv-region").value = v ? (v.region || "") : "";
-    $("sv-price").value = v ? v.price : "";
-    $("sv-moq").value = v ? v.moq : "";
-    $("sv-lead").value = v ? v.lead : "";
-    $("sv-sample").value = v ? v.sample : "None";
-    $("sv-rating").value = v ? v.rating : "";
-    $("sv-contact").value = v ? (v.contact || "") : "";
-    $("sv-note").value = v ? (v.note || "") : "";
-    $("sv-best").checked = v ? !!v.best : false;
+    $("sv-product").value = v ? (v.product || "") : "";
+    $("sv-vendor").value = v ? (v.vendor || "") : "";
+    $("sv-status").value = v ? v.status : V_STATUSES[0];
+    $("sv-desc").value = v ? (v.description || "") : "";
+    $("sv-moq").value = v && v.moq ? v.moq : "";
+    $("sv-sampleCost").value = v && v.sampleCost ? v.sampleCost : "";
+    $("sv-shipCA").value = v && v.sampleShipCA ? v.sampleShipCA : "";
+    $("sv-shipHawk").value = v && v.sampleShipHawk ? v.sampleShipHawk : "";
+    $("sv-sampleLead").value = v ? (v.sampleLead || "") : "";
+    $("sv-orderLead").value = v ? (v.orderLead || "") : "";
+    $("sv-linkVendor").value = v ? (v.linkVendor || "") : "";
+    $("sv-linkCatalog").value = v ? (v.linkCatalog || "") : "";
+    $("sv-linkMedia").value = v ? (v.linkMedia || "") : "";
+    editRows = v && v.costRows && v.costRows.length ? v.costRows.map((r) => ({ ...r })) : [{ variation: "", qty: "", price: 0 }];
+    renderEditRows();
     $("sv-delete").style.display = v ? "" : "none";
-    ov.classList.add("show");
+    $("srcVendorOverlay").classList.add("show");
   }
   const closeItem = () => $("srcItemOverlay").classList.remove("show");
   const closeVendor = () => $("srcVendorOverlay").classList.remove("show");
@@ -2959,38 +3133,38 @@ bootstrap();
         id, name: $("si-name").value.trim(), category: $("si-category").value.trim(),
         target: parseFloat($("si-target").value) || 0, status: $("si-status").value,
         priority: $("si-priority").value, requestedBy: $("si-by").value.trim(),
-        date: $("si-date").value || todayISO(), note: $("si-note").value.trim()
+        date: $("si-date").value || todayISO(), note: $("si-note").value.trim(), links: $("si-links").value.trim()
       });
       closeItem(); toast("Item saved.");
     });
     $("si-cancel").addEventListener("click", closeItem);
-    $("si-delete").addEventListener("click", () => {
-      const id = $("si-id").value;
-      if (id && confirm("Delete this item and all its vendors?")) { removeItem(id); closeItem(); showMaster(); toast("Item deleted."); }
-    });
+    $("si-delete").addEventListener("click", () => { const id = $("si-id").value; if (id && confirm("Delete this item and all its vendors?")) { removeItem(id); closeItem(); showMaster(); toast("Item deleted."); } });
     $("srcItemOverlay").addEventListener("click", (e) => { if (e.target === $("srcItemOverlay")) closeItem(); });
 
+    $("sv-add-cost").addEventListener("click", () => { editRows.push({ variation: "", qty: "", price: 0 }); renderEditRows(); });
     $("srcVendorForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const id = $("sv-id").value || uid("sv_");
+      const costRows = editRows.filter((r) => r.variation || r.qty || r.price).map((r) => ({ variation: String(r.variation || "").trim(), qty: String(r.qty || "").trim(), price: parseFloat(r.price) || 0 }));
       saveVendor({
-        id, itemId: $("sv-item").value, name: $("sv-name").value.trim(), region: $("sv-region").value.trim(),
-        price: parseFloat($("sv-price").value) || 0, moq: parseInt($("sv-moq").value, 10) || 0,
-        lead: parseInt($("sv-lead").value, 10) || 0, sample: $("sv-sample").value,
-        rating: Math.max(0, Math.min(5, parseFloat($("sv-rating").value) || 0)),
-        contact: $("sv-contact").value.trim(), best: $("sv-best").checked, note: $("sv-note").value.trim()
+        id, itemId: $("sv-item").value,
+        product: $("sv-product").value.trim(), vendor: $("sv-vendor").value.trim(),
+        status: $("sv-status").value, description: $("sv-desc").value.trim(), costRows,
+        moq: parseInt($("sv-moq").value, 10) || 0,
+        sampleCost: parseFloat($("sv-sampleCost").value) || 0,
+        sampleShipCA: parseFloat($("sv-shipCA").value) || 0,
+        sampleShipHawk: parseFloat($("sv-shipHawk").value) || 0,
+        sampleLead: $("sv-sampleLead").value.trim(), orderLead: $("sv-orderLead").value.trim(),
+        linkVendor: $("sv-linkVendor").value.trim(), linkCatalog: $("sv-linkCatalog").value.trim(), linkMedia: $("sv-linkMedia").value.trim()
       });
       closeVendor(); toast("Vendor saved.");
     });
     $("sv-cancel").addEventListener("click", closeVendor);
-    $("sv-delete").addEventListener("click", () => {
-      const id = $("sv-id").value;
-      if (id && confirm("Delete this vendor?")) { removeVendor(id); closeVendor(); toast("Vendor deleted."); }
-    });
+    $("sv-delete").addEventListener("click", () => { const id = $("sv-id").value; if (id && confirm("Delete this vendor?")) { removeVendor(id); closeVendor(); toast("Vendor deleted."); } });
     $("srcVendorOverlay").addEventListener("click", (e) => { if (e.target === $("srcVendorOverlay")) closeVendor(); });
   }
 
-  // ---- Wire up master interactions --------------------------------------
+  // ---- Wire up master ----------------------------------------------------
   function wireMaster() {
     $("itemGrid").addEventListener("click", (e) => {
       const edit = e.target.closest(".item-edit");
@@ -2998,9 +3172,7 @@ bootstrap();
       const card = e.target.closest(".item-card");
       if (card) showDetail(card.dataset.id);
     });
-    $("itemGrid").addEventListener("keydown", (e) => {
-      if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("item-card")) { e.preventDefault(); showDetail(e.target.dataset.id); }
-    });
+    $("itemGrid").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("item-card")) { e.preventDefault(); showDetail(e.target.dataset.id); } });
     $("sourcingSearch").addEventListener("input", (e) => renderGrid(e.target.value));
     $("addItemBtn").addEventListener("click", () => openItemModal(null));
   }
