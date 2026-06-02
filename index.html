@@ -2303,7 +2303,7 @@ function renderDigest() {
   el.innerHTML = `
     <div class="digest-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
     <div class="digest-body">
-      <div class="digest-title">Readers Digest — Today's Action Items <span class="digest-date">${dateStr}</span></div>
+      <div class="digest-title">Today's Action Items <span class="digest-date">${dateStr}</span></div>
       <div class="digest-sub">${items.length} active ${items.length === 1 ? "item" : "items"} at On Order stage or later with no update in 7+ days. Click any to open it.</div>
       <div class="digest-items">
         ${shown.map(p => `<div class="digest-item" data-id="${p.id}">
