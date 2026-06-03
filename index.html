@@ -1405,6 +1405,14 @@
   body.theme-dark .vc-comments { border-color: rgba(255,255,255,.1); }
   .vc-comments-text { font-size: 13px; color: var(--g-text-2); line-height: 1.55; margin-top: 5px; white-space: pre-wrap; }
   body.theme-dark .vc-comments-text { color: rgba(226,232,240,.62); }
+  .vc-contact { margin-top: 13px; }
+  .vc-contact-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: 13.5px; }
+  .vc-contact-name { font-weight: 600; color: var(--g-text); }
+  body.theme-dark .vc-contact-name { color: #eaeefb; }
+  .vc-contact-sep { color: var(--g-text-3); }
+  .vc-contact-info { color: var(--g-accent-deep); text-decoration: none; font-weight: 500; }
+  a.vc-contact-info:hover { text-decoration: underline; }
+  body.theme-dark .vc-contact-info { color: #aab2ff; }
 
   .vc-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .vc-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(91,110,244,.12); border: 1px solid rgba(91,110,244,.22); color: var(--g-accent-deep); font-size: 12px; font-weight: 600; text-decoration: none; transition: background .15s; }
@@ -2900,6 +2908,19 @@ bootstrap();
     const cells = [["MOQ", v.moq ? Number(v.moq).toLocaleString() : "—"], ["Sample Cost", v.sampleCost ? money(v.sampleCost) : "—"], ["Sample Ship · Air", v.sampleShipCA ? money(v.sampleShipCA) : "—"], ["Sample Ship · Hawk", v.sampleShipHawk ? money(v.sampleShipHawk) : "—"], ["Ocean Freight", v.oceanFreight ? money(v.oceanFreight) : "—"], ["Sample Lead", esc(v.sampleLead) || "—"], ["Order Lead", esc(v.orderLead) || "—"]];
     return `<div class="vc-meta">${cells.map(([l, val]) => `<div><div class="m-label">${l}</div><div class="m-val">${val}</div></div>`).join("")}</div>`;
   }
+  function contactHref(info) {
+    const s = String(info || "").trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return "mailto:" + s;
+    const digits = s.replace(/[^\d+]/g, "");
+    if (digits.length >= 7 && /^[\d+][\d\s().-]+$/.test(s)) return "tel:" + digits;
+    return null;
+  }
+  function vcContactHTML(v) {
+    if (!v.contactName && !v.contactInfo) return "";
+    const href = contactHref(v.contactInfo);
+    const infoEl = v.contactInfo ? (href ? `<a class="vc-contact-info" href="${esc(href)}">${esc(v.contactInfo)}</a>` : `<span class="vc-contact-info">${esc(v.contactInfo)}</span>`) : "";
+    return `<div class="vc-contact"><div class="m-label">Point of Contact</div><div class="vc-contact-row"><span class="vc-contact-name">${esc(v.contactName) || "—"}</span>${infoEl ? `<span class="vc-contact-sep">·</span>${infoEl}` : ""}</div></div>`;
+  }
   function vcCommentsHTML(v) { return v.comments ? `<div class="vc-comments"><div class="m-label">Comments</div><div class="vc-comments-text">${esc(v.comments)}</div></div>` : ""; }
   function vcLinksHTML(v) {
     const ls = [linkPill(v.linkVendor, null, ICON_LINK), linkPill(v.linkCatalog, "Catalog / Pricing", ICON_DOC), linkPill(v.linkMedia, "Images / Video", ICON_MEDIA)].filter(Boolean).join("");
@@ -2918,6 +2939,7 @@ bootstrap();
         </div>
       </div>
       ${v.description ? `<div class="vc-desc">${esc(v.description)}</div>` : ""}
+      ${vcContactHTML(v)}
       ${costTableHTML(v)}
       ${vcMetaHTML(v)}
       ${vcLinksHTML(v)}
@@ -3095,7 +3117,13 @@ bootstrap();
             <div class="field" style="flex:2;"><label for="sv-product">Product</label><input id="sv-product" required maxlength="120" placeholder="e.g. Electric Roll-Up Banner (Premium)" /></div>
             <div class="field"><label for="sv-status">Status</label><select id="sv-status">${V_STATUSES.map((s) => `<option>${s}</option>`).join("")}</select></div>
           </div>
-          <div class="form-row"><div class="field"><label for="sv-vendor">Vendor</label><input id="sv-vendor" maxlength="90" placeholder="e.g. Shenzhen Brightline" /></div></div>
+          <div class="form-row">
+            <div class="field"><label for="sv-vendor">Vendor</label><input id="sv-vendor" maxlength="90" placeholder="e.g. Shenzhen Brightline" /></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label for="sv-contactName">Point of Contact</label><input id="sv-contactName" maxlength="80" placeholder="e.g. Lily Chen · Sales Rep" /></div>
+            <div class="field"><label for="sv-contactInfo">Contact Info</label><input id="sv-contactInfo" maxlength="120" placeholder="email, phone, or WeChat" /></div>
+          </div>
           <div class="form-row"><div class="field"><label for="sv-desc">Description</label><textarea id="sv-desc" maxlength="800" placeholder="Materials, quality notes, terms, observations…"></textarea></div></div>
           <div class="form-row"><div class="field">
             <label>Cost Table <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— add a line per variation / qty break</span></label>
@@ -3182,6 +3210,8 @@ bootstrap();
     const parentItem = items.find((i) => i.id === (v ? v.itemId : itemId));
     $("sv-product").value = v ? (v.product || "") : (parentItem ? parentItem.name : "");
     $("sv-vendor").value = v ? (v.vendor || "") : "";
+    $("sv-contactName").value = v ? (v.contactName || "") : "";
+    $("sv-contactInfo").value = v ? (v.contactInfo || "") : "";
     $("sv-status").value = v ? v.status : V_STATUSES[0];
     $("sv-desc").value = v ? (v.description || "") : "";
     $("sv-moq").value = v && v.moq ? v.moq : "";
@@ -3243,6 +3273,7 @@ bootstrap();
       const costRows = editRows.filter((r) => r.variation || r.qty || r.price).map((r) => ({ variation: String(r.variation || "").trim(), qty: String(r.qty || "").trim(), price: parseFloat(r.price) || 0 }));
       saveVendor({
         id, itemId: $("sv-item").value, product: $("sv-product").value.trim(), vendor: $("sv-vendor").value.trim(),
+        contactName: $("sv-contactName").value.trim(), contactInfo: $("sv-contactInfo").value.trim(),
         status: $("sv-status").value, description: $("sv-desc").value.trim(), costRows,
         moq: parseInt($("sv-moq").value, 10) || 0, sampleCost: parseFloat($("sv-sampleCost").value) || 0,
         sampleShipCA: parseFloat($("sv-shipCA").value) || 0, sampleShipHawk: parseFloat($("sv-shipHawk").value) || 0,
