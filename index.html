@@ -1065,16 +1065,21 @@
   .empty { color: var(--g-text-2); }
   .empty .big { color: var(--g-text); }
 
-  /* ---------- Comments preview: hard cap at 4 lines ---------- */
+  /* ---------- Comments preview: uniform 3-line clamp with ellipsis ---------- */
   .comments-cell {
+    width: 260px;
+    max-width: 260px;
+    vertical-align: top;
+  }
+  .comments-cell .comment-clamp {
     display: -webkit-box;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     overflow-wrap: anywhere;
     line-height: 1.5;
-    max-height: 6em;
+    max-height: 4.5em;
   }
   .comments-cell .more-ellipsis { display: none; }
 
@@ -2289,7 +2294,7 @@ function rowHtmlFor(p) {
       <div class="hts-row"><span class="hts-tag">HW</span><span class="hts-val ${p.htsHardware ? "" : "empty"}">${escapeHtml(p.htsHardware || "—")}</span></div>
       <div class="hts-row"><span class="hts-tag">GFX</span><span class="hts-val ${p.htsGraphic ? "" : "empty"}">${escapeHtml(p.htsGraphic || "—")}</span></div>
     </td>
-    <td class="comments-cell">${escapeHtml(p.comments || "")}</td>
+    <td class="comments-cell"><div class="comment-clamp">${escapeHtml(p.comments || "")}</div></td>
     <td style="text-align:right;">
       <div class="row-actions" style="justify-content:flex-end;">
         <button class="btn small" data-action="edit" data-id="${p.id}">Edit</button>
