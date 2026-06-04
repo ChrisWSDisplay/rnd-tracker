@@ -1465,6 +1465,7 @@
   .review-share-row { display: flex; gap: 8px; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(120,130,160,.2); }
   body.theme-dark .review-share-row { border-color: rgba(255,255,255,.14); }
   .rev-hint { font-size: 11.5px; color: var(--g-text-3); margin-top: 7px; line-height: 1.5; }
+  .rv-email-list { display: flex; flex-direction: column; gap: 7px; }
   .item-card .chip.review { background: rgba(245,158,11,.18); color: #b06a06; border-color: rgba(245,158,11,.34); }
   body.theme-dark .item-card .chip.review { background: rgba(245,158,11,.24); color: #fcd34d; border-color: rgba(245,158,11,.38); }
 
@@ -2931,7 +2932,8 @@ bootstrap();
     const vs = vendorsFor(item.id);
     const lines = vs.map((v) => { const m = vendorMin(v); return `• ${v.product || "(product)"} — ${v.vendor || "?"} — ${v.status}${m != null ? " — from " + money(m) : ""}`; });
     const who = item.review && item.review.reviewer ? item.review.reviewer : "";
-    const to = (item.review && item.review.email) ? item.review.email : emailForName(who);
+    const emails = reviewEmails(item.review);
+    const to = emails.length ? emails : (emailForName(who) ? [emailForName(who)] : []);
     const note = item.review && item.review.note ? item.review.note : "";
     const subject = `Vendor review needed: ${item.name}`;
     const body =
@@ -2941,7 +2943,14 @@ bootstrap();
       `\nOpen it here:\n${deepLink(item.id)}\n\n` +
       (lines.length ? `Vendor options (${vs.length}):\n${lines.join("\n")}\n\n` : "No vendors logged yet.\n\n") +
       `Thanks`;
-    return `mailto:${encodeURIComponent(to || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    return `mailto:${to.map((e) => encodeURIComponent(e)).join(",")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  // Normalize a review's email(s) → array (back-compat: old single `email` string)
+  function reviewEmails(review) {
+    if (!review) return [];
+    let raw = review.emails != null ? review.emails : review.email;
+    if (Array.isArray(raw)) return raw.map((s) => String(s).trim()).filter(Boolean).slice(0, 3);
+    return String(raw || "").split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean).slice(0, 3);
   }
 
   // ---- Review badge ------------------------------------------------------
@@ -3346,7 +3355,14 @@ bootstrap();
         <form id="srcReviewForm">
           <input type="hidden" id="rv-item" />
           <div class="form-row"><div class="field"><label for="rv-reviewer">Reviewer</label><input id="rv-reviewer" list="rv-people" maxlength="60" placeholder="Type any team member's name" required /><datalist id="rv-people"></datalist></div></div>
-          <div class="form-row"><div class="field"><label for="rv-revemail">Reviewer email <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— optional, fills the email's “To”</span></label><input id="rv-revemail" type="email" list="rv-emails" maxlength="120" placeholder="name@wsdisplay.com" /><datalist id="rv-emails"></datalist></div></div>
+          <div class="form-row"><div class="field"><label>Reviewer emails <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— optional, up to 3. All are added to the email's “To”</span></label>
+            <div class="rv-email-list">
+              <input id="rv-revemail" type="email" list="rv-emails" maxlength="120" placeholder="name@wsdisplay.com" />
+              <input id="rv-revemail2" type="email" list="rv-emails" maxlength="120" placeholder="second reviewer (optional)" />
+              <input id="rv-revemail3" type="email" list="rv-emails" maxlength="120" placeholder="third reviewer (optional)" />
+            </div>
+            <datalist id="rv-emails"></datalist>
+          </div></div>
           <div class="form-row"><div class="field"><label for="rv-note">What should they check? (optional)</label><textarea id="rv-note" maxlength="500" placeholder="e.g. Confirm the Brightline sample passes the motor-noise test before we order."></textarea></div></div>
           <div class="rev-hint">They'll see a <b>Review</b> badge on the Sourcing tab when they open the tracker. <b>Email reviewer</b> opens a pre-filled message — you still hit Send, and adding an email above means it lands in their inbox (and notifications).</div>
           <div class="review-share-row">
@@ -3427,7 +3443,11 @@ bootstrap();
     $("rv-people").innerHTML = peopleList().map((p) => `<option value="${esc(p)}">`).join("");
     $("rv-emails").innerHTML = emailDatalist().map((e) => `<option value="${esc(e)}">`).join("");
     $("rv-reviewer").value = item.review ? (item.review.reviewer || "") : "";
-    $("rv-revemail").value = item.review ? (item.review.email || emailForName(item.review.reviewer)) : "";
+    const em = item.review ? reviewEmails(item.review) : [];
+    if (!em.length && item.review) { const k = emailForName(item.review.reviewer); if (k) em.push(k); }
+    $("rv-revemail").value = em[0] || "";
+    $("rv-revemail2").value = em[1] || "";
+    $("rv-revemail3").value = em[2] || "";
     $("rv-note").value = item.review ? (item.review.note || "") : "";
     $("rv-clear").style.display = item.review ? "" : "none";
     $("rv-email").href = emailFor(item);
@@ -3496,15 +3516,16 @@ bootstrap();
     $("srcVendorOverlay").addEventListener("click", (e) => { if (e.target === $("srcVendorOverlay")) closeVendor(); });
 
     // Review modal
-    const liveReview = () => ({ reviewer: $("rv-reviewer").value.trim(), email: $("rv-revemail").value.trim(), note: $("rv-note").value.trim(), at: new Date().toISOString() });
+    const collectEmails = () => [$("rv-revemail").value, $("rv-revemail2").value, $("rv-revemail3").value].map((s) => s.trim()).filter(Boolean).slice(0, 3);
+    const liveReview = () => ({ reviewer: $("rv-reviewer").value.trim(), emails: collectEmails(), note: $("rv-note").value.trim(), at: new Date().toISOString() });
     const refreshRevEmail = () => { const item = items.find((i) => i.id === reviewItemId); if (item) $("rv-email").href = emailFor({ ...item, review: liveReview() }); };
     $("srcReviewForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const item = items.find((i) => i.id === reviewItemId); if (!item) return;
       const reviewer = $("rv-reviewer").value.trim(); if (!reviewer) return;
-      const email = $("rv-revemail").value.trim();
-      rememberPerson(reviewer, email);
-      saveItem({ ...item, review: { reviewer, email, note: $("rv-note").value.trim(), at: new Date().toISOString() } });
+      const emails = collectEmails();
+      rememberPerson(reviewer, emails[0] || "");
+      saveItem({ ...item, review: { reviewer, emails, note: $("rv-note").value.trim(), at: new Date().toISOString() } });
       closeReview(); toast(`Review requested — ${reviewer} will see the badge.`);
     });
     $("rv-cancel").addEventListener("click", closeReview);
@@ -3512,6 +3533,8 @@ bootstrap();
     $("rv-copy").addEventListener("click", async () => { const ok = await copyText(deepLink(reviewItemId)); toast(ok ? "Link copied — paste it to your teammate." : "Couldn't copy automatically."); });
     $("rv-reviewer").addEventListener("input", () => { const known = emailForName($("rv-reviewer").value.trim()); if (known && !$("rv-revemail").value.trim()) $("rv-revemail").value = known; refreshRevEmail(); });
     $("rv-revemail").addEventListener("input", refreshRevEmail);
+    $("rv-revemail2").addEventListener("input", refreshRevEmail);
+    $("rv-revemail3").addEventListener("input", refreshRevEmail);
     $("rv-note").addEventListener("input", refreshRevEmail);
     $("srcReviewOverlay").addEventListener("click", (e) => { if (e.target === $("srcReviewOverlay")) closeReview(); });
   }
