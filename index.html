@@ -1519,6 +1519,47 @@
   .cmp-table a:hover { text-decoration: underline; }
   body.theme-dark .cmp-table a { color: #aab2ff; }
   .cmp-foot-note { font-size: 11.5px; color: var(--g-text-3); margin-top: 12px; line-height: 1.5; }
+
+  /* ---- Image thumbnails & uploaders (Sourcing) ---- */
+  .item-thumb.has-img { background: none; box-shadow: none; overflow: hidden; }
+  .item-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+  .src-thumb-uploader { display: flex; align-items: center; gap: 14px; }
+  .src-thumb-drop { width: 78px; height: 78px; flex-shrink: 0; border-radius: 14px; display: grid; place-items: center; cursor: pointer; overflow: hidden;
+    background: rgba(255,255,255,.5); border: 1.5px dashed rgba(120,130,160,.45); color: var(--g-text-3); transition: border-color .15s, background .15s; }
+  .src-thumb-drop:hover { border-color: var(--g-accent); background: rgba(91,110,244,.06); }
+  .src-thumb-drop.has-img { border-style: solid; border-color: rgba(120,130,160,.3); }
+  .src-thumb-drop svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1.6; fill: none; }
+  .src-thumb-drop img { width: 100%; height: 100%; object-fit: cover; }
+  .src-thumb-meta { font-size: 12px; color: var(--g-text-3); line-height: 1.5; }
+  .src-thumb-remove { color: var(--red, #dc2626); cursor: pointer; text-decoration: none; font-weight: 600; }
+  .src-thumb-remove:hover { text-decoration: underline; }
+  body.theme-dark .src-thumb-drop { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.22); color: rgba(226,232,240,.5); }
+  body.theme-dark .src-thumb-meta { color: rgba(226,232,240,.6); }
+
+  .src-gallery-editor { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .src-gallery-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .src-gallery-strip:empty { display: none; }
+  .src-gallery-thumb { position: relative; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(120,130,160,.25); }
+  .src-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .src-gallery-rm { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border: 0; border-radius: 50%; background: rgba(15,23,42,.75); color: #fff; font-size: 13px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .src-gallery-rm:hover { background: #dc2626; }
+  .src-gallery-editor .btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.8; fill: none; vertical-align: -2px; margin-right: 4px; }
+
+  /* Vendor card thumbnail + gallery */
+  .vc-head-main { display: flex; align-items: flex-start; gap: 13px; min-width: 0; }
+  .vc-thumb { width: 52px; height: 52px; flex-shrink: 0; border-radius: 12px; overflow: hidden; border: 0; padding: 0; cursor: zoom-in; background: none; box-shadow: 0 2px 8px rgba(23,32,68,.18); }
+  .vc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vc-gallery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .vc-gallery-item { width: 76px; height: 76px; border-radius: 11px; overflow: hidden; border: 1px solid rgba(120,130,160,.2); padding: 0; cursor: zoom-in; background: none; transition: transform .14s; }
+  .vc-gallery-item:hover { transform: translateY(-2px); }
+  .vc-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  body.theme-dark .vc-gallery-item { border-color: rgba(255,255,255,.14); }
+
+  /* Lightbox */
+  #srcLightbox { cursor: zoom-out; align-items: center; padding: 24px; }
+  #srcLightbox.show { display: flex; }
+  #srcLightbox img { max-width: 92vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 24px 70px rgba(0,0,0,.5); object-fit: contain; }
 </style>
 </head>
 <body>
@@ -2863,6 +2904,57 @@ bootstrap();
   const ICON_MAIL = '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
   const ICON_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
   const ICON_COMPARE = '<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg>';
+  const ICON_CAMERA = '<svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>';
+
+  // ---- Image upload helpers (resize → JPEG data URL, like the Tracker) ----
+  function resizeImage(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\//.test(file.type)) { reject(new Error("Not an image")); return; }
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("Bad image"));
+        img.onload = () => {
+          let { width, height } = img;
+          const scale = Math.min(1, maxDim / Math.max(width, height));
+          width = Math.round(width * scale); height = Math.round(height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality || 0.72));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Single-thumbnail uploader, returns a controller with render()
+  function makeThumbCtl(inputId, hiddenId, dropId, metaId, defaultMeta) {
+    const input = $(inputId), hidden = $(hiddenId), drop = $(dropId), meta = $(metaId);
+    function render() {
+      if (hidden.value) {
+        drop.innerHTML = `<img src="${hidden.value}" alt="thumbnail" />`;
+        drop.classList.add("has-img");
+        meta.innerHTML = `Looks good. <a class="src-thumb-remove">Remove</a>`;
+        meta.querySelector(".src-thumb-remove").addEventListener("click", () => { hidden.value = ""; render(); });
+      } else {
+        drop.innerHTML = ICON_CAMERA;
+        drop.classList.remove("has-img");
+        meta.textContent = defaultMeta;
+      }
+    }
+    input.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      meta.textContent = "Processing…";
+      try { hidden.value = await resizeImage(file, 320, 0.74); } catch (err) { meta.textContent = "Couldn't read that image."; return; }
+      render();
+      input.value = "";
+    });
+    return { render };
+  }
 
   let toastTimer;
   function toast(msg) { const t = $("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
@@ -2942,7 +3034,7 @@ bootstrap();
       <div class="item-card" data-id="${i.id}" role="button" tabindex="0">
         <button class="item-edit" data-edit="${i.id}" title="Edit item" aria-label="Edit item">${ICON_PENCIL}</button>
         <div class="item-card-top">
-          <div class="item-thumb">${ICON_BOX}</div>
+          <div class="item-thumb${i.thumb ? " has-img" : ""}">${i.thumb ? `<img src="${i.thumb}" alt="" />` : ICON_BOX}</div>
           <div class="item-head-text">
             <div class="item-name">${esc(i.name)}</div>
             <div class="item-chips">
@@ -3009,7 +3101,10 @@ bootstrap();
     return `
     <div class="vendor-card${cls}">
       <div class="vc-head">
-        <div style="min-width:0;"><div class="vc-product">${esc(v.product) || "Untitled product"}</div><div class="vc-vendor">${esc(v.vendor) || "—"}</div></div>
+        <div class="vc-head-main">
+          ${v.thumb ? `<button type="button" class="vc-thumb" data-img="${v.thumb}"><img src="${v.thumb}" alt="" /></button>` : ""}
+          <div style="min-width:0;"><div class="vc-product">${esc(v.product) || "Untitled product"}</div><div class="vc-vendor">${esc(v.vendor) || "—"}</div></div>
+        </div>
         <div class="vc-head-right">
           <span class="chip ${vStatusChip(v.status)}">${esc(v.status)}</span>
           <button class="btn small" data-ved="${v.id}">Edit</button>
@@ -3022,6 +3117,7 @@ bootstrap();
       ${vcMetaHTML(v)}
       ${vcLinksHTML(v)}
       ${vcCommentsHTML(v)}
+      ${Array.isArray(v.images) && v.images.length ? `<div class="vc-gallery">${v.images.map((src) => `<button type="button" class="vc-gallery-item" data-img="${src}"><img src="${src}" loading="lazy" alt="" /></button>`).join("")}</div>` : ""}
     </div>`;
   }
   function reviewBannerHTML(item) {
@@ -3070,7 +3166,7 @@ bootstrap();
       <button class="back-link" id="backLink"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> All sourcing items</button>
       ${reviewBannerHTML(item)}
       <div class="detail-head">
-        <div class="item-thumb">${ICON_BOX}</div>
+        <div class="item-thumb${item.thumb ? " has-img" : ""}">${item.thumb ? `<img src="${item.thumb}" alt="" />` : ICON_BOX}</div>
         <div style="flex:1; min-width:0;">
           <h2 class="detail-title">${esc(item.name)}</h2>
           <div class="detail-sub">
@@ -3123,6 +3219,7 @@ bootstrap();
     const rbCopy = $("rbCopy"); if (rbCopy) rbCopy.addEventListener("click", async () => { const ok = await copyText(deepLink(id)); toast(ok ? "Link copied." : "Couldn't copy automatically."); });
     $("sourcingDetail").querySelectorAll("[data-ved]").forEach((b) => b.addEventListener("click", () => openVendorModal(vendors.find((v) => v.id === b.dataset.ved), id)));
     $("sourcingDetail").querySelectorAll("[data-vdel]").forEach((b) => b.addEventListener("click", () => { const v = vendors.find((x) => x.id === b.dataset.vdel); if (v && confirm(`Delete vendor option “${v.product || v.vendor}”?`)) removeVendor(v.id); }));
+    $("sourcingDetail").querySelectorAll("[data-img]").forEach((b) => b.addEventListener("click", () => { $("lightboxImg").src = b.dataset.img; $("srcLightbox").classList.add("show"); }));
   }
 
   // ---- View routing ------------------------------------------------------
@@ -3155,6 +3252,13 @@ bootstrap();
 
   // ---- Cost-table editor -------------------------------------------------
   let editRows = [];
+  let siThumbCtl = null, svThumbCtl = null, galleryImages = [];
+  function renderGallery() {
+    const strip = $("sv-gallery-strip");
+    if (!strip) return;
+    strip.innerHTML = galleryImages.map((src, i) => `<div class="src-gallery-thumb"><img src="${src}" alt="image ${i + 1}" /><button type="button" class="src-gallery-rm" data-grm="${i}" title="Remove">×</button></div>`).join("");
+    strip.querySelectorAll("[data-grm]").forEach((b) => b.addEventListener("click", () => { galleryImages.splice(+b.dataset.grm, 1); renderGallery(); }));
+  }
   function renderEditRows() {
     const box = $("sv-cost-rows");
     box.innerHTML = editRows.map((r, idx) => `
@@ -3197,6 +3301,15 @@ bootstrap();
           </div>
           <div class="form-row"><div class="field"><label for="si-note">Note</label><textarea id="si-note" maxlength="800" placeholder="What you're looking for, requirements, blockers…"></textarea></div></div>
           <div class="form-row"><div class="field"><label for="si-links">Example Links</label><textarea id="si-links" maxlength="1200" placeholder="Paste reference links — Alibaba listings, competitor products, inspiration. One per line."></textarea></div></div>
+          <div class="form-row"><div class="field">
+            <label>Thumbnail</label>
+            <div class="src-thumb-uploader">
+              <label class="src-thumb-drop" id="siThumbDrop" for="si-thumb-input" title="Upload thumbnail">${ICON_CAMERA}</label>
+              <input type="file" id="si-thumb-input" accept="image/*" style="display:none" />
+              <input type="hidden" id="si-thumb" />
+              <div class="src-thumb-meta" id="siThumbMeta">Upload a reference photo — shown on the item card. Auto-resized &amp; saved with the item.</div>
+            </div>
+          </div></div>
           <div class="modal-actions">
             <div class="left"><button type="button" class="btn danger" id="si-delete" style="display:none;">Delete</button></div>
             <div class="right"><button type="button" class="btn" id="si-cancel">Cancel</button><button type="submit" class="btn primary">Save Item</button></div>
@@ -3219,6 +3332,15 @@ bootstrap();
             <div class="field"><label for="sv-contactName">Point of Contact</label><input id="sv-contactName" maxlength="80" placeholder="e.g. Lily Chen · Sales Rep" /></div>
             <div class="field"><label for="sv-contactInfo">Contact Info</label><input id="sv-contactInfo" maxlength="120" placeholder="email, phone, or WeChat" /></div>
           </div>
+          <div class="form-row"><div class="field">
+            <label>Thumbnail</label>
+            <div class="src-thumb-uploader">
+              <label class="src-thumb-drop" id="svThumbDrop" for="sv-thumb-input" title="Upload thumbnail">${ICON_CAMERA}</label>
+              <input type="file" id="sv-thumb-input" accept="image/*" style="display:none" />
+              <input type="hidden" id="sv-thumb" />
+              <div class="src-thumb-meta" id="svThumbMeta">A small cover image for this vendor option.</div>
+            </div>
+          </div></div>
           <div class="form-row"><div class="field"><label for="sv-desc">Description</label><textarea id="sv-desc" maxlength="800" placeholder="Materials, quality notes, terms, observations…"></textarea></div></div>
           <div class="form-row"><div class="field">
             <label>Cost Table <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— add a line per variation / qty break</span></label>
@@ -3247,6 +3369,14 @@ bootstrap();
           <div class="form-row"><div class="field"><label for="sv-linkCatalog">Link · Catalog / Price List</label><input id="sv-linkCatalog" maxlength="400" placeholder="https://…" /></div></div>
           <div class="form-row"><div class="field"><label for="sv-linkMedia">Link · Images / Videos</label><input id="sv-linkMedia" maxlength="400" placeholder="https://…" /></div></div>
           <div class="form-row"><div class="field"><label for="sv-comments">Comments</label><textarea id="sv-comments" maxlength="1000" placeholder="Ongoing notes, follow-ups, internal discussion…"></textarea></div></div>
+          <div class="form-row"><div class="field">
+            <label>Images <span style="text-transform:none;letter-spacing:0;color:var(--g-text-3);font-weight:500;">— product photos, sample shots, spec sheets (up to 8)</span></label>
+            <div class="src-gallery-editor">
+              <div class="src-gallery-strip" id="sv-gallery-strip"></div>
+              <label class="btn small" for="sv-gallery-input">${ICON_CAMERA} Add images</label>
+              <input type="file" id="sv-gallery-input" accept="image/*" multiple style="display:none" />
+            </div>
+          </div></div>
           <div class="modal-actions">
             <div class="left"><button type="button" class="btn danger" id="sv-delete" style="display:none;">Delete</button></div>
             <div class="right"><button type="button" class="btn" id="sv-cancel">Cancel</button><button type="submit" class="btn primary">Save Vendor</button></div>
@@ -3277,7 +3407,8 @@ bootstrap();
         <div id="compareBody"></div>
         <div class="modal-actions"><div class="left"></div><div class="right"><button type="button" class="btn" id="cmp-close">Close</button></div></div>
       </div>
-    </div>`;
+    </div>
+    <div class="modal-overlay" id="srcLightbox"><img id="lightboxImg" alt="" /></div>`;
     document.body.appendChild(wrap);
   }
 
@@ -3301,6 +3432,8 @@ bootstrap();
     $("si-date").value = item ? (item.date || todayISO()) : todayISO();
     $("si-note").value = item ? (item.note || "") : "";
     $("si-links").value = item ? (item.links || "") : "";
+    $("si-thumb").value = item ? (item.thumb || "") : "";
+    if (siThumbCtl) siThumbCtl.render();
     $("si-delete").style.display = item ? "" : "none";
     $("srcItemOverlay").classList.add("show");
   }
@@ -3326,6 +3459,10 @@ bootstrap();
     $("sv-linkCatalog").value = v ? (v.linkCatalog || "") : "";
     $("sv-linkMedia").value = v ? (v.linkMedia || "") : "";
     $("sv-comments").value = v ? (v.comments || "") : "";
+    $("sv-thumb").value = v ? (v.thumb || "") : "";
+    if (svThumbCtl) svThumbCtl.render();
+    galleryImages = v && Array.isArray(v.images) ? v.images.slice() : [];
+    renderGallery();
     editRows = v && v.costRows && v.costRows.length ? v.costRows.map((r) => ({ ...r })) : [{ variation: "", qty: "", price: 0 }];
     renderEditRows();
     $("sv-delete").style.display = v ? "" : "none";
@@ -3437,6 +3574,7 @@ bootstrap();
         section: $("si-section").value,
         priority: $("si-priority").value, requestedBy: $("si-by").value.trim(),
         date: $("si-date").value || todayISO(), note: $("si-note").value.trim(), links: $("si-links").value.trim(),
+        thumb: $("si-thumb").value || "",
         review: existing ? (existing.review || null) : null   // preserve review state through item edits
       });
       closeItem(); toast("Item saved.");
@@ -3446,6 +3584,21 @@ bootstrap();
     $("srcItemOverlay").addEventListener("click", (e) => { if (e.target === $("srcItemOverlay")) closeItem(); });
 
     $("sv-add-cost").addEventListener("click", () => { editRows.push({ variation: "", qty: "", price: 0 }); renderEditRows(); });
+
+    // Thumbnail controllers + vendor image gallery
+    siThumbCtl = makeThumbCtl("si-thumb-input", "si-thumb", "siThumbDrop", "siThumbMeta", "Upload a reference photo — shown on the item card.");
+    svThumbCtl = makeThumbCtl("sv-thumb-input", "sv-thumb", "svThumbDrop", "svThumbMeta", "A small cover image for this vendor option.");
+    $("sv-gallery-input").addEventListener("change", async (e) => {
+      const files = [...(e.target.files || [])];
+      for (const f of files) {
+        if (galleryImages.length >= 8) { toast("Up to 8 images per vendor."); break; }
+        try { galleryImages.push(await resizeImage(f, 1000, 0.72)); } catch (err) {}
+      }
+      renderGallery();
+      e.target.value = "";
+    });
+    // Lightbox
+    $("srcLightbox").addEventListener("click", () => $("srcLightbox").classList.remove("show"));
     $("srcVendorForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const id = $("sv-id").value || uid("sv_");
@@ -3459,7 +3612,8 @@ bootstrap();
         oceanFreight: parseFloat($("sv-ocean").value) || 0,
         sampleLead: $("sv-sampleLead").value.trim(), orderLead: $("sv-orderLead").value.trim(),
         linkVendor: $("sv-linkVendor").value.trim(), linkCatalog: $("sv-linkCatalog").value.trim(), linkMedia: $("sv-linkMedia").value.trim(),
-        comments: $("sv-comments").value.trim()
+        comments: $("sv-comments").value.trim(),
+        thumb: $("sv-thumb").value || "", images: galleryImages.slice()
       });
       closeVendor(); toast("Vendor saved.");
     });
