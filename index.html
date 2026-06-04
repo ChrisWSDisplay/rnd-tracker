@@ -1462,6 +1462,58 @@
   .rev-hint { font-size: 11.5px; color: var(--g-text-3); margin-top: 7px; line-height: 1.5; }
   .item-card .chip.review { background: rgba(245,158,11,.18); color: #b06a06; border-color: rgba(245,158,11,.34); }
   body.theme-dark .item-card .chip.review { background: rgba(245,158,11,.24); color: #fcd34d; border-color: rgba(245,158,11,.38); }
+
+  /* Section chips + move row */
+  .chip.sec-active     { background: rgba(91,110,244,.16); color: var(--g-accent-deep); border-color: rgba(91,110,244,.3); }
+  .chip.sec-completed  { background: rgba(22,163,74,.16); color: #15803d; border-color: rgba(22,163,74,.3); }
+  .chip.sec-rejected   { background: rgba(220,38,38,.15); color: #c0392b; border-color: rgba(220,38,38,.28); }
+  .chip.sec-backburner { background: rgba(217,119,6,.15); color: #b06a06; border-color: rgba(217,119,6,.28); }
+  body.theme-dark .chip.sec-active     { background: rgba(124,135,255,.24); color: #c2c9ff; border-color: rgba(124,135,255,.34); }
+  body.theme-dark .chip.sec-completed  { background: rgba(34,197,94,.22); color: #86efac; border-color: rgba(34,197,94,.34); }
+  body.theme-dark .chip.sec-rejected   { background: rgba(239,68,68,.22); color: #fca5a5; border-color: rgba(239,68,68,.34); }
+  body.theme-dark .chip.sec-backburner { background: rgba(245,158,11,.22); color: #fcd34d; border-color: rgba(245,158,11,.34); }
+  .move-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .move-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--g-text-3); margin-right: 2px; }
+
+  /* ---- Vendor comparison modal ---- */
+  #srcCompareOverlay .modal.compare-modal { max-width: min(1080px, 96vw); max-height: 92vh; overflow-y: auto; }
+  .cmp-chart { padding: 16px 18px; border-radius: 14px; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.55); margin-bottom: 18px; }
+  body.theme-dark .cmp-chart { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); }
+  .cmp-chart-title { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: var(--g-text-3); margin-bottom: 12px; }
+  .cmp-bar-row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 12px; margin-bottom: 9px; }
+  .cmp-bar-label { font-size: 12.5px; font-weight: 600; color: var(--g-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.theme-dark .cmp-bar-label { color: #eaeefb; }
+  .cmp-bar-track { height: 12px; border-radius: 999px; background: rgba(120,130,160,.16); overflow: hidden; }
+  body.theme-dark .cmp-bar-track { background: rgba(255,255,255,.1); }
+  .cmp-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c87ff, #5560ec); transition: width .4s cubic-bezier(.2,.8,.3,1); }
+  .cmp-bar-fill.best { background: linear-gradient(90deg, #34d399, #16a34a); }
+  .cmp-bar-val { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--g-text); text-align: right; }
+  body.theme-dark .cmp-bar-val { color: #eaeefb; }
+
+  .cmp-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(120,130,160,.18); }
+  body.theme-dark .cmp-table-wrap { border-color: rgba(255,255,255,.12); }
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+  .cmp-table th, .cmp-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid rgba(120,130,160,.14); }
+  body.theme-dark .cmp-table th, body.theme-dark .cmp-table td { border-color: rgba(255,255,255,.08); }
+  .cmp-table thead th { position: sticky; top: 0; background: var(--g-fill); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); }
+  .cmp-vhead { vertical-align: bottom; }
+  .cmp-vhead.approved { box-shadow: inset 0 3px 0 #16a34a; }
+  .cmp-vhead.rejected { opacity: .7; }
+  .cmp-vname { font-size: 14px; font-weight: 700; color: var(--g-text); letter-spacing: -0.01em; }
+  body.theme-dark .cmp-vname { color: #f1f4ff; }
+  .cmp-vprod { font-size: 11px; color: var(--g-text-3); margin-top: 2px; max-width: 180px; }
+  .cmp-rowlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; color: var(--g-text-3); white-space: nowrap; }
+  .cmp-corner { background: transparent; }
+  .cmp-table td { color: var(--g-text); font-variant-numeric: tabular-nums; }
+  body.theme-dark .cmp-table td { color: #eaeefb; }
+  .cmp-table tbody tr:nth-child(odd) td, .cmp-table tbody tr:nth-child(odd) th.cmp-rowlabel { background: rgba(120,130,160,.05); }
+  body.theme-dark .cmp-table tbody tr:nth-child(odd) td, body.theme-dark .cmp-table tbody tr:nth-child(odd) th.cmp-rowlabel { background: rgba(255,255,255,.03); }
+  .cmp-best { display: inline-block; font-weight: 700; color: #15803d; background: rgba(22,163,74,.14); padding: 2px 8px; border-radius: 6px; }
+  body.theme-dark .cmp-best { color: #86efac; background: rgba(34,197,94,.2); }
+  .cmp-table a { color: var(--g-accent-deep); text-decoration: none; font-weight: 600; }
+  .cmp-table a:hover { text-decoration: underline; }
+  body.theme-dark .cmp-table a { color: #aab2ff; }
+  .cmp-foot-note { font-size: 11.5px; color: var(--g-text-3); margin-top: 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -1583,6 +1635,13 @@
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Item
       </button>
+    </div>
+
+    <div class="tabs" id="sourcingTabs">
+      <button class="tab active" data-ssection="active">Active <span class="count" id="scnt-active">0</span></button>
+      <button class="tab" data-ssection="completed">Completed <span class="count" id="scnt-completed">0</span></button>
+      <button class="tab" data-ssection="rejected">Rejected <span class="count" id="scnt-rejected">0</span></button>
+      <button class="tab" data-ssection="backburner">Back Burner <span class="count" id="scnt-backburner">0</span></button>
     </div>
 
     <div class="item-grid" id="itemGrid"></div>
@@ -2692,6 +2751,8 @@ bootstrap();
   const CATEGORIES = ["Displays", "Frames", "Signage", "Light Boxes", "Kiosks", "Hanging", "Eco", "Printing", "Hardware", "MFG", "Finishing", "Warehouse"];
   const ITEM_STATUSES = ["Sourcing", "Quoting", "Sampling", "Decided"];
   const PRIORITIES = ["High", "Med", "Low"];
+  const S_SECTIONS = ["active", "completed", "rejected", "backburner"];
+  const S_SECTION_LABEL = { active: "Active", completed: "Completed", rejected: "Rejected", backburner: "Back Burner" };
   const V_STATUSES = [
     "Vendor Replied", "Received Product Info/Pricing", "Sample Ordered", "Testing", "Reviewing",
     "Rejected - Price", "Rejected - Other Vendor", "Rejected - Quality", "Sample Approved"
@@ -2707,12 +2768,12 @@ bootstrap();
 
   // ---- Seed defaults -----------------------------------------------------
   const SEED_ITEMS = [
-    { id: "s1", name: "Motorized Retractable Banner Stand", category: "Displays",    target: 85,   status: "Quoting",  priority: "High", requestedBy: "Chris", date: "2026-05-12", note: "Quiet, smooth motor with a premium aluminum base. Replaces our manual roll-up line.", links: "https://www.alibaba.com/showroom/motorized-banner-stand.html", review: { reviewer: "Manny", note: "Brightline sample is in — can you sign off on motor noise + base finish before we place the PO?", at: "2026-05-26T17:10:00Z" } },
-    { id: "s2", name: "Magnetic Modular Fabric Frame",       category: "Frames",      target: 42,   status: "Sampling", priority: "Med",  requestedBy: "Manny", date: "2026-05-08", note: "Tool-free magnetic SEG corners. Packs flat, ships UPS-friendly.", links: "", review: null },
-    { id: "s3", name: "Outdoor A-Frame Sidewalk Sign (HD)",  category: "Signage",     target: 60,   status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-19", note: "Heavy-duty, wind-rated. Powder-coated steel preferred over plastic.", links: "", review: null },
-    { id: "s4", name: "Backlit SEG Light Box · 100mm",       category: "Light Boxes", target: 210,  status: "Quoting",  priority: "Med",  requestedBy: "Jesse", date: "2026-04-30", note: "Edge-lit, even diffusion, 100mm depth. Single-sided to start.", links: "", review: null },
-    { id: "s5", name: "Powder-Coat Finishing Service",       category: "Finishing",   target: 0,    status: "Sourcing", priority: "Med",  requestedBy: "Manny", date: "2026-05-24", note: "Local powder-coat partner for aluminum extrusions. Color matching required.", links: "", review: null },
-    { id: "s6", name: "3PL Warehouse · West Coast",          category: "Warehouse",   target: 0,    status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-21", note: "Fulfillment + light kitting near the Port of LA. Receiving and pick/pack.", links: "", review: null }
+    { id: "s1", name: "Motorized Retractable Banner Stand", category: "Displays",    target: 85,   status: "Quoting",  priority: "High", requestedBy: "Chris", date: "2026-05-12", note: "Quiet, smooth motor with a premium aluminum base. Replaces our manual roll-up line.", links: "https://www.alibaba.com/showroom/motorized-banner-stand.html", section: "active", review: { reviewer: "Manny", note: "Brightline sample is in — can you sign off on motor noise + base finish before we place the PO?", at: "2026-05-26T17:10:00Z" } },
+    { id: "s2", name: "Magnetic Modular Fabric Frame",       category: "Frames",      target: 42,   status: "Sampling", priority: "Med",  requestedBy: "Manny", date: "2026-05-08", note: "Tool-free magnetic SEG corners. Packs flat, ships UPS-friendly.", links: "", section: "active", review: null },
+    { id: "s3", name: "Outdoor A-Frame Sidewalk Sign (HD)",  category: "Signage",     target: 60,   status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-19", note: "Heavy-duty, wind-rated. Powder-coated steel preferred over plastic.", links: "", section: "active", review: null },
+    { id: "s4", name: "Backlit SEG Light Box · 100mm",       category: "Light Boxes", target: 210,  status: "Quoting",  priority: "Med",  requestedBy: "Jesse", date: "2026-04-30", note: "Edge-lit, even diffusion, 100mm depth. Single-sided to start.", links: "", section: "completed", review: null },
+    { id: "s5", name: "Powder-Coat Finishing Service",       category: "Finishing",   target: 0,    status: "Sourcing", priority: "Med",  requestedBy: "Manny", date: "2026-05-24", note: "Local powder-coat partner for aluminum extrusions. Color matching required.", links: "", section: "backburner", review: null },
+    { id: "s6", name: "3PL Warehouse · West Coast",          category: "Warehouse",   target: 0,    status: "Sourcing", priority: "High", requestedBy: "Chris", date: "2026-05-21", note: "Fulfillment + light kitting near the Port of LA. Receiving and pick/pack.", links: "", section: "rejected", review: null }
   ];
   const SEED_VENDORS = [
     { id: "v1", itemId: "s1", product: "Electric Roll-Up Banner (Premium)", vendor: "Shenzhen Brightline", status: "Sample Approved", description: "Brushed aluminum base, near-silent motor, remote + app control. Best sample of the batch.", costRows: [{ variation: "33in × 79in", qty: "1–49", price: 96 }, { variation: "33in × 79in", qty: "50–199", price: 84 }, { variation: "33in × 79in", qty: "200+", price: 78.5 }], moq: 100, sampleCost: 120, sampleShipCA: 48, sampleShipHawk: 22, sampleLead: "7 days", orderLead: "30–35 days", linkVendor: "https://www.alibaba.com/product-detail/brightline-motorized.html", linkCatalog: "", linkMedia: "" },
@@ -2796,6 +2857,7 @@ bootstrap();
   const ICON_COPY = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   const ICON_MAIL = '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
   const ICON_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  const ICON_COMPARE = '<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg>';
 
   let toastTimer;
   function toast(msg) { const t = $("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
@@ -2852,11 +2914,22 @@ bootstrap();
 
   function renderGrid(filter) {
     const q = (filter || "").trim().toLowerCase();
-    const rows = items.filter((i) => !q || i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q))
+    // tab counts (respect search? no — counts reflect all items per section, like the Tracker)
+    const counts = { active: 0, completed: 0, rejected: 0, backburner: 0 };
+    items.forEach((i) => { const s = i.section || "active"; counts[s] = (counts[s] || 0) + 1; });
+    S_SECTIONS.forEach((s) => { const el = $("scnt-" + s); if (el) el.textContent = counts[s] || 0; });
+
+    const rows = items
+      .filter((i) => (i.section || "active") === currentSSection)
+      .filter((i) => !q || i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q))
       .slice().sort((a, b) => (b.review ? 1 : 0) - (a.review ? 1 : 0));
     const grid = $("itemGrid");
     if (!items.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">No sourcing items yet.</div>Click <b>Add Item</b> to start tracking something you're hunting for.</div>`; return; }
-    if (!rows.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">No items match “${esc(filter)}”.</div>Try a different search.</div>`; return; }
+    if (!rows.length) {
+      const msg = q ? `No items match “${esc(filter)}” in ${S_SECTION_LABEL[currentSSection]}.` : `No items in ${S_SECTION_LABEL[currentSSection]}.`;
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="big">${msg}</div>${q ? "Try a different search or tab." : "Add an item here, or move one in from its card."}</div>`;
+      return;
+    }
     grid.innerHTML = rows.map((i) => {
       const n = vendorsFor(i.id).length, low = lowestQuote(i.id), appr = approvedCount(i.id);
       const reviewChip = i.review && i.review.reviewer ? `<span class="chip review" title="Awaiting review">${ICON_BELL} Review · ${esc(i.review.reviewer)}</span>` : "";
@@ -2985,6 +3058,8 @@ bootstrap();
     const cards = vs.length ? `<div class="vendor-list">${vs.map(vendorCardHTML).join("")}</div>`
       : `<div class="empty" style="padding:40px 10px;"><div class="big">No vendors logged yet.</div>Click <b>Add Vendor</b> to record the first option.</div>`;
     const reviewBtnLabel = item.review && item.review.reviewer ? `${ICON_BELL} Review: ${esc(item.review.reviewer)}` : `${ICON_BELL} Request review`;
+    const moveBtns = S_SECTIONS.filter((s) => s !== (item.section || "active"))
+      .map((s) => `<button class="btn small" data-move="${s}">→ ${S_SECTION_LABEL[s]}</button>`).join("");
 
     $("sourcingDetail").innerHTML = `
       <button class="back-link" id="backLink"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> All sourcing items</button>
@@ -2994,6 +3069,7 @@ bootstrap();
         <div style="flex:1; min-width:0;">
           <h2 class="detail-title">${esc(item.name)}</h2>
           <div class="detail-sub">
+            <span class="chip sec-${esc(item.section || "active")}">${S_SECTION_LABEL[item.section || "active"]}</span>
             <span class="chip gray">${esc(item.category) || "—"}</span>
             <span class="chip ${statusChipClass(item.status)}">${esc(item.status)}</span>
             <span class="chip ${prioChipClass(item.priority)}">${esc(item.priority)} priority</span>
@@ -3009,10 +3085,15 @@ bootstrap();
         </div>
       </div>
       <section class="mini-stats">${mini}</section>
+      <div class="move-row">
+        <span class="move-label">Move to</span>
+        ${moveBtns}
+      </div>
       <div class="toolbar">
         <div class="section-label">Vendor options for this item</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn" id="reqReviewBtn">${reviewBtnLabel}</button>
+          <button class="btn" id="compareBtn">${ICON_COMPARE} Compare vendors</button>
           <button class="btn" id="copyLinkBtn">${ICON_COPY} Copy link</button>
           <button class="btn primary" id="addVendorBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Vendor</button>
         </div>
@@ -3025,6 +3106,12 @@ bootstrap();
     $("editItemBtn").addEventListener("click", () => openItemModal(item));
     $("addVendorBtn").addEventListener("click", () => openVendorModal(null, id));
     $("reqReviewBtn").addEventListener("click", () => openReviewModal(item));
+    $("compareBtn").addEventListener("click", () => openCompareModal(item.id));
+    $("sourcingDetail").querySelectorAll("[data-move]").forEach((b) => b.addEventListener("click", () => {
+      const target = b.dataset.move;
+      saveItem({ ...item, section: target });
+      toast(`Moved to ${S_SECTION_LABEL[target]}.`);
+    }));
     $("copyLinkBtn").addEventListener("click", async () => { const ok = await copyText(deepLink(id)); toast(ok ? "Link copied — paste it to your teammate." : "Couldn't copy automatically."); });
     const rbDone = $("rbDone"); if (rbDone) rbDone.addEventListener("click", () => { saveItem({ ...item, review: null }); toast("Marked reviewed."); });
     const rbEdit = $("rbEdit"); if (rbEdit) rbEdit.addEventListener("click", () => openReviewModal(item));
@@ -3034,7 +3121,7 @@ bootstrap();
   }
 
   // ---- View routing ------------------------------------------------------
-  let currentView = "tracker", currentItemId = null;
+  let currentView = "tracker", currentItemId = null, currentSSection = "active";
   function afterData() { updateReviewBadge(); if (currentView === "sourcing") { if (currentItemId) renderDetail(currentItemId); else renderMaster(); } }
   function showMaster() { currentItemId = null; renderMaster(); setHash("#sourcing"); window.scrollTo({ top: 0 }); }
   function showDetail(id) { currentItemId = id; renderDetail(id); setHash("#sourcing/" + id); window.scrollTo({ top: 0 }); }
@@ -3093,6 +3180,9 @@ bootstrap();
           </div>
           <div class="form-row">
             <div class="field"><label for="si-category">Category</label><input id="si-category" list="si-cat-list" maxlength="40" placeholder="e.g. Displays" /><datalist id="si-cat-list">${CATEGORIES.map((c) => `<option value="${c}">`).join("")}</datalist></div>
+            <div class="field"><label for="si-section">Section</label><select id="si-section">${S_SECTIONS.map((s) => `<option value="${s}">${S_SECTION_LABEL[s]}</option>`).join("")}</select></div>
+          </div>
+          <div class="form-row">
             <div class="field"><label for="si-status">Status</label><select id="si-status">${ITEM_STATUSES.map((s) => `<option>${s}</option>`).join("")}</select></div>
             <div class="field"><label for="si-priority">Priority</label><select id="si-priority">${PRIORITIES.map((s) => `<option>${s}</option>`).join("")}</select></div>
           </div>
@@ -3177,6 +3267,11 @@ bootstrap();
           </div>
         </form>
       </div>
+    <div class="modal-overlay" id="srcCompareOverlay">
+      <div class="modal compare-modal"><h2 id="srcCompareTitle">Compare Vendors</h2>
+        <div id="compareBody"></div>
+        <div class="modal-actions"><div class="left"></div><div class="right"><button type="button" class="btn" id="cmp-close">Close</button></div></div>
+      </div>
     </div>`;
     document.body.appendChild(wrap);
   }
@@ -3194,6 +3289,7 @@ bootstrap();
     $("si-name").value = item ? item.name : "";
     $("si-target").value = item && item.target ? item.target : "";
     $("si-category").value = item ? (item.category || "") : "";
+    $("si-section").value = item ? (item.section || "active") : (currentSSection || "active");
     $("si-status").value = item ? item.status : "Sourcing";
     $("si-priority").value = item ? item.priority : "Med";
     $("si-by").value = item ? (item.requestedBy || "") : "";
@@ -3247,6 +3343,83 @@ bootstrap();
   const closeItem = () => $("srcItemOverlay").classList.remove("show");
   const closeVendor = () => $("srcVendorOverlay").classList.remove("show");
   const closeReview = () => $("srcReviewOverlay").classList.remove("show");
+  const closeCompare = () => $("srcCompareOverlay").classList.remove("show");
+
+  // ---- Vendor comparison chart -------------------------------------------
+  function openCompareModal(itemId) {
+    const item = items.find((i) => i.id === itemId); if (!item) return;
+    const vs = vendorsFor(itemId);
+    $("srcCompareTitle").textContent = `Compare Vendors — ${item.name}`;
+    const body = $("compareBody");
+    if (!vs.length) { body.innerHTML = `<div class="empty" style="padding:36px 10px;"><div class="big">No vendors to compare yet.</div>Add a couple of vendor options first.</div>`; $("srcCompareOverlay").classList.add("show"); return; }
+
+    // Landed sample = sample cost + cheaper of the two sample shipping routes
+    const landedSample = (v) => {
+      const ship = [v.sampleShipCA, v.sampleShipHawk].map(Number).filter((n) => n > 0);
+      const base = Number(v.sampleCost) || 0;
+      const min = ship.length ? Math.min(...ship) : 0;
+      return base + min;
+    };
+    const metric = {
+      price: (v) => vendorMin(v),
+      moq: (v) => Number(v.moq) || null,
+      sample: (v) => landedSample(v) || null,
+      ocean: (v) => Number(v.oceanFreight) || null
+    };
+    // Best (lowest) per metric → highlight green
+    const bestOf = (fn) => { const xs = vs.map(fn).filter((n) => n != null); return xs.length ? Math.min(...xs) : null; };
+    const bestPrice = bestOf(metric.price), bestMoq = bestOf(metric.moq), bestSample = bestOf(metric.sample), bestOcean = bestOf(metric.ocean);
+
+    // Bar chart scaled to the max unit price across vendors
+    const maxPrice = Math.max(...vs.map((v) => metric.price(v) || 0), 1);
+
+    const rows = [
+      { key: "status", label: "Status", render: (v) => `<span class="chip ${vStatusChip(v.status)}">${esc(v.status)}</span>` },
+      { key: "contact", label: "Point of Contact", render: (v) => esc(v.contactName) || "—" },
+      { key: "price", label: "Best Unit Price", render: (v) => { const n = metric.price(v); return n == null ? "—" : `<span class="${n === bestPrice ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { key: "moq", label: "MOQ", render: (v) => { const n = metric.moq(v); return n == null ? "—" : `<span class="${n === bestMoq ? "cmp-best" : ""}">${n.toLocaleString()}</span>`; } },
+      { key: "sample", label: "Sample Cost", render: (v) => v.sampleCost ? money(v.sampleCost) : "—" },
+      { key: "landed", label: "Landed Sample*", render: (v) => { const n = metric.sample(v); return n == null ? "—" : `<span class="${n === bestSample ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { key: "air", label: "Sample Ship · Air", render: (v) => v.sampleShipCA ? money(v.sampleShipCA) : "—" },
+      { key: "hawk", label: "Sample Ship · Hawk", render: (v) => v.sampleShipHawk ? money(v.sampleShipHawk) : "—" },
+      { key: "ocean", label: "Ocean Freight", render: (v) => { const n = metric.ocean(v); return n == null ? "—" : `<span class="${n === bestOcean ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { key: "sampleLead", label: "Sample Lead", render: (v) => esc(v.sampleLead) || "—" },
+      { key: "orderLead", label: "Order Lead", render: (v) => esc(v.orderLead) || "—" },
+      { key: "links", label: "Links", render: (v) => [v.linkVendor && `<a href="${esc(safeHref(v.linkVendor))}" target="_blank" rel="noopener">Vendor</a>`, v.linkCatalog && `<a href="${esc(safeHref(v.linkCatalog))}" target="_blank" rel="noopener">Catalog</a>`, v.linkMedia && `<a href="${esc(safeHref(v.linkMedia))}" target="_blank" rel="noopener">Media</a>`].filter(Boolean).join(" · ") || "—" }
+    ];
+
+    const headCells = vs.map((v) => {
+      const cls = v.status === "Sample Approved" ? " approved" : (/^Rejected/i.test(v.status) ? " rejected" : "");
+      return `<th class="cmp-vhead${cls}"><div class="cmp-vname">${esc(v.vendor) || "—"}</div><div class="cmp-vprod">${esc(v.product) || ""}</div></th>`;
+    }).join("");
+
+    const bars = vs.map((v) => {
+      const p = metric.price(v);
+      const pct = p ? Math.max(6, Math.round((p / maxPrice) * 100)) : 0;
+      const isBest = p != null && p === bestPrice;
+      return `<div class="cmp-bar-row">
+        <div class="cmp-bar-label">${esc(v.vendor) || "—"}</div>
+        <div class="cmp-bar-track"><div class="cmp-bar-fill${isBest ? " best" : ""}" style="width:${pct}%"></div></div>
+        <div class="cmp-bar-val">${p != null ? money(p) : "—"}</div>
+      </div>`;
+    }).join("");
+
+    const bodyRows = rows.map((r) => `<tr><th class="cmp-rowlabel">${r.label}</th>${vs.map((v) => `<td>${r.render(v)}</td>`).join("")}</tr>`).join("");
+
+    body.innerHTML = `
+      <div class="cmp-chart">
+        <div class="cmp-chart-title">Best unit price by vendor</div>
+        ${bars}
+      </div>
+      <div class="cmp-table-wrap">
+        <table class="cmp-table">
+          <thead><tr><th class="cmp-corner"></th>${headCells}</tr></thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </div>
+      <div class="cmp-foot-note">Green = best value in that row. *Landed Sample = sample cost + cheaper of Air / Hawk shipping.</div>`;
+    $("srcCompareOverlay").classList.add("show");
+  }
 
   function wireModals() {
     $("srcItemForm").addEventListener("submit", (e) => {
@@ -3256,6 +3429,7 @@ bootstrap();
       saveItem({
         id, name: $("si-name").value.trim(), category: $("si-category").value.trim(),
         target: parseFloat($("si-target").value) || 0, status: $("si-status").value,
+        section: $("si-section").value,
         priority: $("si-priority").value, requestedBy: $("si-by").value.trim(),
         date: $("si-date").value || todayISO(), note: $("si-note").value.trim(), links: $("si-links").value.trim(),
         review: existing ? (existing.review || null) : null   // preserve review state through item edits
@@ -3307,6 +3481,8 @@ bootstrap();
     $("rv-revemail").addEventListener("input", refreshRevEmail);
     $("rv-note").addEventListener("input", refreshRevEmail);
     $("srcReviewOverlay").addEventListener("click", (e) => { if (e.target === $("srcReviewOverlay")) closeReview(); });
+    $("cmp-close").addEventListener("click", closeCompare);
+    $("srcCompareOverlay").addEventListener("click", (e) => { if (e.target === $("srcCompareOverlay")) closeCompare(); });
   }
 
   // ---- Wire up master ----------------------------------------------------
@@ -3320,6 +3496,12 @@ bootstrap();
     $("itemGrid").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("item-card")) { e.preventDefault(); showDetail(e.target.dataset.id); } });
     $("sourcingSearch").addEventListener("input", (e) => renderGrid(e.target.value));
     $("addItemBtn").addEventListener("click", () => openItemModal(null));
+    $("sourcingTabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab"); if (!tab) return;
+      currentSSection = tab.dataset.ssection;
+      $("sourcingTabs").querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+      renderGrid($("sourcingSearch") ? $("sourcingSearch").value : "");
+    });
   }
 
   // ---- Boot --------------------------------------------------------------
