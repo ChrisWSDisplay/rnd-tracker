@@ -3531,6 +3531,14 @@ bootstrap();
     $("rv-cancel").addEventListener("click", closeReview);
     $("rv-clear").addEventListener("click", () => { const item = items.find((i) => i.id === reviewItemId); if (item) { saveItem({ ...item, review: null }); } closeReview(); toast("Review cleared."); });
     $("rv-copy").addEventListener("click", async () => { const ok = await copyText(deepLink(reviewItemId)); toast(ok ? "Link copied — paste it to your teammate." : "Couldn't copy automatically."); });
+    // Hand off to the mail app, then close the draft modal and return to the vendor page.
+    $("rv-email").addEventListener("click", () => {
+      const item = items.find((i) => i.id === reviewItemId);
+      const reviewer = $("rv-reviewer").value.trim();
+      // Save the request first so the badge/banner reflect it when we return.
+      if (item && reviewer) { rememberPerson(reviewer, collectEmails()[0] || ""); saveItem({ ...item, review: { reviewer, emails: collectEmails(), note: $("rv-note").value.trim(), at: new Date().toISOString() } }); }
+      setTimeout(() => { closeReview(); toast("Opened your email app — sent it on its way."); }, 150);
+    });
     $("rv-reviewer").addEventListener("input", () => { const known = emailForName($("rv-reviewer").value.trim()); if (known && !$("rv-revemail").value.trim()) $("rv-revemail").value = known; refreshRevEmail(); });
     $("rv-revemail").addEventListener("input", refreshRevEmail);
     $("rv-revemail2").addEventListener("input", refreshRevEmail);
