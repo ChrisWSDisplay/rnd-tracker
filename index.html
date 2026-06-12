@@ -344,6 +344,7 @@
   .product-name .date-section.completed  { color: var(--green); }
   .product-name .date-section.rejected   { color: var(--red); }
   .product-name .date-section.backburner { color: var(--amber); }
+  .product-name .date-by { font-size: 11px; opacity: .85; }
   .chip {
     display: inline-flex;
     align-items: center;
@@ -1517,13 +1518,86 @@
   .vc-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
   body.theme-dark .vc-gallery-item { border-color: rgba(255,255,255,.14); }
 
+  /* Created/updated stamp line */
+  .stamp-line { margin-top: 14px; padding-top: 11px; border-top: 1px solid rgba(120,130,160,.14); font-size: 11px; color: var(--g-text-3, #75809a); letter-spacing: .01em; }
+  .stamp-line b { font-weight: 600; color: var(--g-text-2, #5a6377); }
+  .stamp-dot { margin: 0 7px; opacity: .5; }
+  body.theme-dark .stamp-line { border-color: rgba(255,255,255,.08); color: rgba(226,232,240,.5); }
+  body.theme-dark .stamp-line b { color: rgba(226,232,240,.72); }
+
   /* Lightbox */
   #srcLightbox { cursor: zoom-out; align-items: center; padding: 24px; }
   #srcLightbox.show { display: flex; }
   #srcLightbox img { max-width: 92vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 24px 70px rgba(0,0,0,.5); object-fit: contain; }
+
+  /* ===== Auth gate ===== */
+  .auth-gate { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 24px;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(124,135,255,.5), transparent 42%),
+      radial-gradient(circle at 82% 16%, rgba(168,140,255,.45), transparent 46%),
+      radial-gradient(circle at 75% 85%, rgba(90,200,250,.4), transparent 48%),
+      radial-gradient(circle at 22% 88%, rgba(255,196,140,.4), transparent 44%),
+      var(--bg, #eef1f8);
+  }
+  body.theme-dark .auth-gate { background:
+      radial-gradient(circle at 18% 20%, rgba(91,110,244,.4), transparent 44%),
+      radial-gradient(circle at 82% 16%, rgba(124,80,200,.4), transparent 46%),
+      radial-gradient(circle at 75% 85%, rgba(40,120,170,.42), transparent 48%),
+      radial-gradient(circle at 22% 88%, rgba(120,80,30,.4), transparent 44%),
+      #0f1320;
+  }
+  .auth-gate.authed { display: none; }
+  .auth-card { width: min(400px, 100%); text-align: center; padding: 40px 34px 32px; border-radius: 26px;
+    background: rgba(255,255,255,.55); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255,255,255,.6); box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 30px 80px -20px rgba(23,32,68,.4); }
+  body.theme-dark .auth-card { background: rgba(28,34,58,.55); border-color: rgba(255,255,255,.12); box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 30px 80px -20px rgba(0,0,0,.6); }
+  .auth-mark { width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 16px; display: grid; place-items: center;
+    background: linear-gradient(150deg, #6f7bff, #5560ec 55%, #7b53e6); color: #fff; font-weight: 800; font-size: 19px; letter-spacing: .02em;
+    box-shadow: 0 8px 22px rgba(85,96,236,.45), inset 0 1px 0 rgba(255,255,255,.5); }
+  .auth-title { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--g-text, #1c2238); }
+  body.theme-dark .auth-title { color: #f1f4ff; }
+  .auth-sub { margin: 5px 0 26px; font-size: 13px; color: var(--g-text-3, #75809a); }
+  .auth-google { width: 100%; height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 11px;
+    border-radius: 13px; border: 1px solid rgba(120,130,160,.28); cursor: pointer; font: inherit; font-size: 14.5px; font-weight: 600;
+    color: #1f2330; background: #fff; transition: transform .12s, box-shadow .15s, background .15s; box-shadow: 0 4px 14px rgba(23,32,68,.12); }
+  .auth-google:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(23,32,68,.18); }
+  .auth-google:active { transform: translateY(0); }
+  .auth-google:disabled { opacity: .6; cursor: default; transform: none; }
+  body.theme-dark .auth-google { background: #fff; color: #1f2330; }
+  .auth-note { margin: 16px 0 0; font-size: 12px; color: var(--g-text-3, #75809a); line-height: 1.5; }
+  .auth-error { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: #c0392b; background: rgba(220,38,38,.1);
+    border: 1px solid rgba(220,38,38,.24); border-radius: 10px; padding: 9px 12px; }
+  body.theme-dark .auth-error { color: #fca5a5; background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.3); }
+  .auth-error.hidden, .user-chip.hidden { display: none; }
+
+  /* User chip in the header */
+  .user-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 8px; border-radius: 999px;
+    background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.6); }
+  body.theme-dark .user-chip { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.12); box-shadow: none; }
+  .user-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: #c8cfe0; }
+  .user-chip span { font-size: 12.5px; font-weight: 600; color: var(--g-text, #1c2238); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.theme-dark .user-chip span { color: #eaeefb; }
+  .user-signout { width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--g-text-3, #75809a); transition: background .15s, color .15s; }
+  .user-signout:hover { background: rgba(220,38,38,.12); color: #dc2626; }
+  .user-signout svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 </head>
 <body>
+
+<!-- ===== Auth gate — Google sign-in restricted to @wsdisplay.com ===== -->
+<div id="authGate" class="auth-gate">
+  <div class="auth-card">
+    <div class="auth-mark">WS</div>
+    <h1 class="auth-title">Product R&amp;D Tracker</h1>
+    <p class="auth-sub">Internal tool · WS Display</p>
+    <button class="auth-google" id="googleSignIn">
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <p class="auth-note" id="authNote">Use your <b>@wsdisplay.com</b> Google account.</p>
+    <p class="auth-error hidden" id="authError"></p>
+  </div>
+</div>
 
 <header class="top">
   <div class="brand">
@@ -1561,6 +1635,13 @@
       KPI Report
     </button>
     <input type="file" id="importFile" accept="application/json" style="display:none" />
+    <div class="user-chip hidden" id="userChip" title="">
+      <img id="userAvatar" alt="" referrerpolicy="no-referrer" />
+      <span id="userName"></span>
+      <button class="user-signout" id="signOutBtn" title="Sign out" aria-label="Sign out">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -1812,6 +1893,9 @@ import {
   getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
   getDocs, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 // ===== Firebase init =====
 const firebaseConfig = {
@@ -1824,10 +1908,81 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
 const productsCol = collection(db, "products");
 
 // Expose Firestore handles for the Sourcing section (sourcing.js)
 window.RND_FB = { db, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs };
+
+// ===== Auth gate — Google sign-in restricted to @wsdisplay.com =====
+const ALLOWED_DOMAIN = "wsdisplay.com";
+let booted = false;
+
+const authGate = document.getElementById("authGate");
+const authError = document.getElementById("authError");
+const googleBtn = document.getElementById("googleSignIn");
+const userChip = document.getElementById("userChip");
+
+function showAuthError(msg) {
+  if (!authError) return;
+  authError.textContent = msg;
+  authError.classList.remove("hidden");
+}
+function clearAuthError() { if (authError) authError.classList.add("hidden"); }
+
+const provider = new GoogleAuthProvider();
+// Pre-filter the account chooser to the company domain (UX hint, not security).
+provider.setCustomParameters({ hd: ALLOWED_DOMAIN, prompt: "select_account" });
+
+googleBtn.addEventListener("click", async () => {
+  clearAuthError();
+  googleBtn.disabled = true;
+  try {
+    await signInWithPopup(auth, provider);
+    // onAuthStateChanged handles the rest.
+  } catch (err) {
+    if (err && err.code === "auth/popup-closed-by-user") { /* user cancelled */ }
+    else if (err && err.code === "auth/operation-not-allowed") showAuthError("Google sign-in isn't enabled yet in Firebase. Enable it in Authentication → Sign-in method.");
+    else if (err && err.code === "auth/unauthorized-domain") showAuthError("This site's domain isn't authorized in Firebase Auth settings. Add it under Authentication → Settings → Authorized domains.");
+    else showAuthError("Sign-in failed: " + (err && err.message ? err.message : err));
+  } finally {
+    googleBtn.disabled = false;
+  }
+});
+
+document.getElementById("signOutBtn").addEventListener("click", () => signOut(auth));
+
+function showUserChip(user) {
+  if (!userChip) return;
+  userChip.classList.remove("hidden");
+  document.getElementById("userName").textContent = (user.displayName || user.email).split(" ")[0];
+  userChip.title = user.email;
+  const av = document.getElementById("userAvatar");
+  if (user.photoURL) { av.src = user.photoURL; av.style.display = ""; } else { av.style.display = "none"; }
+}
+
+onAuthStateChanged(auth, (user) => {
+  const domainOk = user && typeof user.email === "string" && user.email.toLowerCase().endsWith("@" + ALLOWED_DOMAIN);
+  if (user && !domainOk) {
+    // Signed in with a non-company account — reject and sign back out.
+    showAuthError("Access is limited to @" + ALLOWED_DOMAIN + " accounts. You're signed in as " + user.email + ".");
+    signOut(auth);
+    return;
+  }
+  if (domainOk) {
+    clearAuthError();
+    authGate.classList.add("authed");
+    showUserChip(user);
+    // Record who's signed in for accountability (review/add stamps can use this).
+    window.RND_USER = { name: user.displayName || user.email, email: user.email, uid: user.uid };
+    if (!booted) { booted = true; bootstrap(); }
+  } else {
+    // Signed out — show the gate, hide the app.
+    authGate.classList.remove("authed");
+    if (userChip) userChip.classList.add("hidden");
+    window.RND_USER = null;
+  }
+});
 
 function setLive(status) {
   const el = document.getElementById("liveBadge");
@@ -1933,6 +2088,13 @@ let state = { products: [], activeSection: "active", search: "" };
 function uid() { return "p_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
 
 async function saveProduct(p) {
+  const prev = (state.products || []).find(x => x.id === p.id);
+  const who = (window.RND_USER && (window.RND_USER.name || window.RND_USER.email)) || "";
+  p = {
+    ...p,
+    createdBy: (prev && prev.createdBy) || p.createdBy || who,
+    updatedBy: who
+  };
   await setDoc(doc(productsCol, p.id), p);
 }
 async function deleteProductRemote(id) {
@@ -2280,8 +2442,15 @@ function rowHtmlFor(p) {
   const sectionDateLine = (p.section !== "active")
     ? `<span class="date date-section ${p.section}">${SECTION_DATE_LABEL[p.section]} ${fmtDate(p.sectionChangedAt || p.dateUpdated)}</span>`
     : `<span class="date">Added ${fmtDate(p.dateAdded)}</span>`;
+  const stampTitle = [
+    p.createdBy ? `Added by ${p.createdBy}${p.dateAdded ? " on " + fmtDate(p.dateAdded) : ""}` : "",
+    p.updatedBy ? `Last updated by ${p.updatedBy}${p.dateUpdated ? " on " + fmtDate(p.dateUpdated) : ""}` : ""
+  ].filter(Boolean).join(" · ");
+  const byLine = (p.createdBy || p.updatedBy)
+    ? `<span class="date date-by" title="${escapeHtml(stampTitle)}">by ${escapeHtml(p.updatedBy || p.createdBy)}</span>`
+    : "";
   return `<tr class="product-row">
-    <td><div class="product-name">${escapeHtml(p.name)}${sectionDateLine}</div></td>
+    <td><div class="product-name">${escapeHtml(p.name)}${sectionDateLine}${byLine}</div></td>
     <td class="thumb-cell">${p.thumbnail
       ? `<img class="thumb" src="${p.thumbnail}" alt="${escapeHtml(p.name)}" loading="lazy" />`
       : `<span class="thumb noimg"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>`}</td>
@@ -2737,7 +2906,7 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+// bootstrap() is now called by the auth gate once a @wsdisplay.com user signs in.
 </script>
 
 <!-- Sourcing section logic (manual entry + Firestore) — bundled inline -->
@@ -2811,7 +2980,17 @@ bootstrap();
     } catch (e) { console.warn("[sourcing] Firestore unavailable — local storage.", e.message); itemsCol = vendorsCol = null; }
   }
   function upsert(arr, obj) { const i = arr.findIndex((x) => x.id === obj.id); if (i >= 0) { const c = arr.slice(); c[i] = obj; return c; } return arr.concat([obj]); }
-  async function saveItem(it) { items = upsert(items, it); lsSave(); afterData(); if (itemsCol) { try { await FB.setDoc(FB.doc(itemsCol, it.id), it); } catch (e) { console.warn(e); } } }
+  // Stamp who/when. Preserves the original created-by/at; refreshes updated-by/at on every save.
+  function currentUserName() { return (window.RND_USER && (window.RND_USER.name || window.RND_USER.email)) || ""; }
+  function stamp(obj, arr) {
+    const prev = arr.find((x) => x.id === obj.id);
+    const now = new Date().toISOString();
+    const who = currentUserName();
+    const createdAt = (prev && prev.createdAt) || obj.createdAt || now;
+    const createdBy = (prev && prev.createdBy) || obj.createdBy || who;
+    return { ...obj, createdAt, createdBy, updatedAt: now, updatedBy: who };
+  }
+  async function saveItem(it) { it = stamp(it, items); items = upsert(items, it); lsSave(); afterData(); if (itemsCol) { try { await FB.setDoc(FB.doc(itemsCol, it.id), it); } catch (e) { console.warn(e); } } }
   async function removeItem(id) {
     items = items.filter((x) => x.id !== id);
     const kill = vendors.filter((v) => v.itemId === id);
@@ -2819,7 +2998,7 @@ bootstrap();
     lsSave(); afterData();
     if (itemsCol) { try { await FB.deleteDoc(FB.doc(itemsCol, id)); for (const v of kill) await FB.deleteDoc(FB.doc(vendorsCol, v.id)); } catch (e) { console.warn(e); } }
   }
-  async function saveVendor(v) { vendors = upsert(vendors, v); lsSave(); afterData(); if (vendorsCol) { try { await FB.setDoc(FB.doc(vendorsCol, v.id), v); } catch (e) { console.warn(e); } } }
+  async function saveVendor(v) { v = stamp(v, vendors); vendors = upsert(vendors, v); lsSave(); afterData(); if (vendorsCol) { try { await FB.setDoc(FB.doc(vendorsCol, v.id), v); } catch (e) { console.warn(e); } } }
   async function removeVendor(id) { vendors = vendors.filter((x) => x.id !== id); lsSave(); afterData(); if (vendorsCol) { try { await FB.deleteDoc(FB.doc(vendorsCol, id)); } catch (e) { console.warn(e); } } }
 
   // ---- Helpers -----------------------------------------------------------
@@ -2830,6 +3009,16 @@ bootstrap();
   function fmtDate(d) { if (!d) return "—"; const t = new Date(d.length === 10 ? d + "T12:00:00" : d); return isNaN(t) ? esc(d) : t.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
   function relTime(iso) { if (!iso) return ""; const s = (Date.now() - new Date(iso).getTime()) / 1000; if (isNaN(s)) return ""; if (s < 90) return "just now"; const m = s / 60; if (m < 60) return Math.round(m) + "m ago"; const h = m / 60; if (h < 24) return Math.round(h) + "h ago"; const d = Math.round(h / 24); return d + (d === 1 ? " day ago" : " days ago"); }
   const todayISO = () => new Date().toISOString().slice(0, 10);
+  function fmtDateTime(iso) { if (!iso) return ""; const t = new Date(iso); return isNaN(t) ? "" : t.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + " · " + t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
+  function stampLine(o) {
+    if (!o) return "";
+    const parts = [];
+    if (o.createdBy || o.createdAt) parts.push(`Added by <b>${esc(o.createdBy) || "—"}</b>${o.createdAt ? ` · ${esc(fmtDate(o.createdAt))}` : ""}`);
+    if (o.updatedAt && (o.updatedAt !== o.createdAt || (o.updatedBy && o.updatedBy !== o.createdBy))) {
+      parts.push(`Updated by <b>${esc(o.updatedBy) || "—"}</b> · ${esc(relTime(o.updatedAt))}`);
+    }
+    return parts.length ? `<div class="stamp-line" title="${esc(o.updatedAt ? "Last updated " + fmtDateTime(o.updatedAt) : "")}">${parts.join('<span class="stamp-dot">·</span>')}</div>` : "";
+  }
 
   const statusChipClass = (s) => ({ Sourcing: "gray", Quoting: "", Sampling: "amber", Decided: "green" }[s] ?? "");
   const prioChipClass = (p) => ({ High: "prio-high", Med: "prio-med", Low: "prio-low" }[p] ?? "prio-low");
@@ -3086,6 +3275,7 @@ bootstrap();
       ${vcLinksHTML(v)}
       ${vcCommentsHTML(v)}
       ${Array.isArray(v.images) && v.images.length ? `<div class="vc-gallery">${v.images.map((src) => `<button type="button" class="vc-gallery-item" data-img="${src}"><img src="${src}" loading="lazy" alt="" /></button>`).join("")}</div>` : ""}
+      ${stampLine(v)}
     </div>`;
   }
   function reviewBannerHTML(item) {
@@ -3150,6 +3340,7 @@ bootstrap();
             <div class="dm"><div class="dm-l">Requested By</div><div class="dm-v">${esc(item.requestedBy) || "—"}</div></div>
             <div class="dm"><div class="dm-l">Date Added</div><div class="dm-v">${fmtDate(item.date)}</div></div>
           </div>
+          ${stampLine(item)}
           ${itemLinksHTML}
         </div>
       </div>
