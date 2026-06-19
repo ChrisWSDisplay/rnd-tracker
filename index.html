@@ -345,6 +345,14 @@
   .product-name .date-section.rejected   { color: var(--red); }
   .product-name .date-section.backburner { color: var(--amber); }
   .product-name .date-by { font-size: 11px; opacity: .85; }
+  .product-name .product-vendor {
+    display: flex; align-items: center; gap: 5px; margin-top: 5px;
+    font-size: 12px; font-weight: 600; color: var(--accent-deep, #4750e0);
+    background: rgba(91,110,244,.12); border: 1px solid rgba(91,110,244,.2);
+    padding: 2px 9px 2px 7px; border-radius: 999px; width: fit-content; letter-spacing: -0.005em;
+  }
+  .product-name .product-vendor svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.7; fill: none; stroke-linejoin: round; stroke-linecap: round; flex-shrink: 0; }
+  body.theme-dark .product-name .product-vendor { color: #c2c9ff; background: rgba(124,135,255,.2); border-color: rgba(124,135,255,.3); }
   .chip {
     display: inline-flex;
     align-items: center;
@@ -2449,8 +2457,11 @@ function rowHtmlFor(p) {
   const byLine = (p.createdBy || p.updatedBy)
     ? `<span class="date date-by" title="${escapeHtml(stampTitle)}">by ${escapeHtml(p.updatedBy || p.createdBy)}</span>`
     : "";
+  const vendorTag = (p.vendor || "").trim()
+    ? `<span class="product-vendor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 20v-6h6v6"/></svg>${escapeHtml(p.vendor.trim())}</span>`
+    : "";
   return `<tr class="product-row">
-    <td><div class="product-name">${escapeHtml(p.name)}${sectionDateLine}${byLine}</div></td>
+    <td><div class="product-name">${escapeHtml(p.name)}${vendorTag}${sectionDateLine}${byLine}</div></td>
     <td class="thumb-cell">${p.thumbnail
       ? `<img class="thumb" src="${p.thumbnail}" alt="${escapeHtml(p.name)}" loading="lazy" />`
       : `<span class="thumb noimg"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>`}</td>
