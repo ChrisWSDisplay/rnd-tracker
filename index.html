@@ -1490,6 +1490,48 @@
   .move-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .move-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--g-text-3); margin-right: 2px; }
 
+  /* ---- Vendor comparison modal (Sourcing) ---- */
+  #srcCompareOverlay .modal.compare-modal { max-width: min(1080px, 96vw); max-height: 92vh; overflow-y: auto; }
+  .cmp-chart { padding: 16px 18px; border-radius: 14px; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.55); margin-bottom: 18px; }
+  body.theme-dark .cmp-chart { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); }
+  .cmp-chart-title { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: var(--g-text-3); margin-bottom: 12px; }
+  .cmp-bar-row { display: grid; grid-template-columns: 160px 1fr 92px; align-items: center; gap: 12px; margin-bottom: 9px; }
+  .cmp-bar-label { font-size: 12.5px; font-weight: 600; color: var(--g-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.theme-dark .cmp-bar-label { color: #eaeefb; }
+  .cmp-bar-track { height: 12px; border-radius: 999px; background: rgba(120,130,160,.16); overflow: hidden; }
+  body.theme-dark .cmp-bar-track { background: rgba(255,255,255,.1); }
+  .cmp-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c87ff, #5560ec); transition: width .4s cubic-bezier(.2,.8,.3,1); }
+  .cmp-bar-fill.best { background: linear-gradient(90deg, #34d399, #16a34a); }
+  .cmp-bar-val { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--g-text); text-align: right; }
+  body.theme-dark .cmp-bar-val { color: #eaeefb; }
+  .cmp-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(120,130,160,.18); }
+  body.theme-dark .cmp-table-wrap { border-color: rgba(255,255,255,.12); }
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+  .cmp-table th, .cmp-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid rgba(120,130,160,.14); vertical-align: top; }
+  body.theme-dark .cmp-table th, body.theme-dark .cmp-table td { border-color: rgba(255,255,255,.08); }
+  .cmp-table thead th { position: sticky; top: 0; background: var(--g-fill); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); }
+  .cmp-vhead { vertical-align: bottom; }
+  .cmp-vhead.approved { box-shadow: inset 0 3px 0 #16a34a; }
+  .cmp-vhead.rejected { opacity: .7; }
+  .cmp-vname { font-size: 14px; font-weight: 700; color: var(--g-text); letter-spacing: -0.01em; }
+  body.theme-dark .cmp-vname { color: #f1f4ff; }
+  .cmp-vprod { font-size: 11px; color: var(--g-text-3); margin-top: 2px; max-width: 180px; }
+  .cmp-rowlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; color: var(--g-text-3); white-space: nowrap; }
+  .cmp-corner { background: transparent; }
+  .cmp-grouprow th, .cmp-grouprow td { background: rgba(91,110,244,.07); border-top: 1px solid rgba(91,110,244,.18); }
+  .cmp-grouprow .cmp-rowlabel { color: var(--g-accent-deep); }
+  body.theme-dark .cmp-grouprow th, body.theme-dark .cmp-grouprow td { background: rgba(124,135,255,.1); }
+  .cmp-table td { color: var(--g-text); font-variant-numeric: tabular-nums; }
+  body.theme-dark .cmp-table td { color: #eaeefb; }
+  .cmp-table tbody tr:nth-child(odd) td, .cmp-table tbody tr:nth-child(odd) th.cmp-rowlabel { background: rgba(120,130,160,.05); }
+  body.theme-dark .cmp-table tbody tr:nth-child(odd) td, body.theme-dark .cmp-table tbody tr:nth-child(odd) th.cmp-rowlabel { background: rgba(255,255,255,.03); }
+  .cmp-best { display: inline-block; font-weight: 700; color: #15803d; background: rgba(22,163,74,.14); padding: 2px 8px; border-radius: 6px; }
+  body.theme-dark .cmp-best { color: #86efac; background: rgba(34,197,94,.2); }
+  .cmp-table a { color: var(--g-accent-deep); text-decoration: none; font-weight: 600; }
+  .cmp-table a:hover { text-decoration: underline; }
+  body.theme-dark .cmp-table a { color: #aab2ff; }
+  .cmp-foot-note { font-size: 11.5px; color: var(--g-text-3); margin-top: 12px; line-height: 1.5; }
+
   /* ---- Image thumbnails & uploaders (Sourcing) ---- */
   .item-thumb.has-img { background: none; box-shadow: none; overflow: hidden; }
   .item-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
@@ -3064,6 +3106,7 @@ async function bootstrap() {
   const ICON_COPY = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   const ICON_MAIL = '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
   const ICON_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  const ICON_COMPARE = '<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg>';
   const ICON_CAMERA = '<svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>';
 
   // ---- Image upload helpers (resize → JPEG data URL, like the Tracker) ----
@@ -3364,6 +3407,7 @@ async function bootstrap() {
         <div class="section-label">Vendor options for this item</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn" id="reqReviewBtn">${reviewBtnLabel}</button>
+          <button class="btn" id="compareBtn">${ICON_COMPARE} Compare vendors</button>
           <button class="btn" id="copyLinkBtn">${ICON_COPY} Copy link</button>
           <button class="btn primary" id="addVendorBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Vendor</button>
         </div>
@@ -3376,6 +3420,7 @@ async function bootstrap() {
     $("editItemBtn").addEventListener("click", () => openItemModal(item));
     $("addVendorBtn").addEventListener("click", () => openVendorModal(null, id));
     $("reqReviewBtn").addEventListener("click", () => openReviewModal(item));
+    $("compareBtn").addEventListener("click", () => openCompareModal(item.id));
     $("sourcingDetail").querySelectorAll("[data-move]").forEach((b) => b.addEventListener("click", () => {
       const target = b.dataset.move;
       saveItem({ ...item, section: target });
@@ -3577,7 +3622,13 @@ async function bootstrap() {
           </div>
         </form>
       </div>
-    <div class="modal-overlay" id="srcLightbox"><img id="lightboxImg" alt="" /></div>`;
+    <div class="modal-overlay" id="srcLightbox"><img id="lightboxImg" alt="" /></div>
+    <div class="modal-overlay" id="srcCompareOverlay">
+      <div class="modal compare-modal"><h2 id="srcCompareTitle">Compare Vendors</h2>
+        <div id="compareBody"></div>
+        <div class="modal-actions"><div class="left"></div><div class="right"><button type="button" class="btn" id="cmp-close">Close</button></div></div>
+      </div>
+    </div>`;
     document.body.appendChild(wrap);
   }
 
@@ -3658,6 +3709,84 @@ async function bootstrap() {
   const closeItem = () => $("srcItemOverlay").classList.remove("show");
   const closeVendor = () => $("srcVendorOverlay").classList.remove("show");
   const closeReview = () => $("srcReviewOverlay").classList.remove("show");
+  const closeCompare = () => $("srcCompareOverlay").classList.remove("show");
+
+  // ---- Vendor comparison chart (per item) --------------------------------
+  function openCompareModal(itemId) {
+    const item = items.find((i) => i.id === itemId); if (!item) return;
+    const vs = vendorsFor(itemId);
+    $("srcCompareTitle").textContent = `Compare Vendors — ${item.name}`;
+    const body = $("compareBody");
+    if (!vs.length) {
+      body.innerHTML = `<div class="empty" style="padding:36px 10px;"><div class="big">No vendors to compare yet.</div>Add a couple of vendor options first.</div>`;
+      $("srcCompareOverlay").classList.add("show"); return;
+    }
+
+    // Landed sample = sample cost + cheaper of Air / Hawk shipping
+    const landedSample = (v) => { const ship = [v.sampleShipCA, v.sampleShipHawk].map(Number).filter((n) => n > 0); return (Number(v.sampleCost) || 0) + (ship.length ? Math.min(...ship) : 0); };
+    const metric = { price: (v) => vendorMin(v), moq: (v) => Number(v.moq) || null, sample: (v) => landedSample(v) || null, ocean: (v) => Number(v.oceanFreight) || null };
+    const bestOf = (fn) => { const xs = vs.map(fn).filter((n) => n != null); return xs.length ? Math.min(...xs) : null; };
+    const bestPrice = bestOf(metric.price), bestMoq = bestOf(metric.moq), bestSample = bestOf(metric.sample), bestOcean = bestOf(metric.ocean);
+
+    // Bar chart on best unit price
+    const maxPrice = Math.max(...vs.map((v) => metric.price(v) || 0), 1);
+    const bars = vs.map((v) => {
+      const p = metric.price(v);
+      const pct = p ? Math.max(6, Math.round((p / maxPrice) * 100)) : 0;
+      const isBest = p != null && p === bestPrice;
+      return `<div class="cmp-bar-row">
+        <div class="cmp-bar-label">${esc(v.vendor) || "—"}</div>
+        <div class="cmp-bar-track"><div class="cmp-bar-fill${isBest ? " best" : ""}" style="width:${pct}%"></div></div>
+        <div class="cmp-bar-val">${p != null ? money(p) : "—"}</div>
+      </div>`;
+    }).join("");
+
+    // Distinct qty breaks across all vendors → a row each in the price-by-qty table
+    const qtyKeys = [];
+    vs.forEach((v) => (v.costRows || []).forEach((r) => { const k = (r.qty || "").trim() || "—"; if (!qtyKeys.includes(k)) qtyKeys.push(k); }));
+    const priceAtQty = (v, qty) => { const r = (v.costRows || []).find((x) => ((x.qty || "").trim() || "—") === qty); return r && r.price ? Number(r.price) : null; };
+    const qtyRowsHTML = qtyKeys.map((qty) => {
+      const vals = vs.map((v) => priceAtQty(v, qty));
+      const valid = vals.filter((n) => n != null);
+      const lo = valid.length ? Math.min(...valid) : null;
+      return `<tr><th class="cmp-rowlabel">Qty ${esc(qty)}</th>${vs.map((v, i) => { const n = vals[i]; return `<td>${n == null ? "—" : `<span class="${n === lo ? "cmp-best" : ""}">${money(n)}</span>`}</td>`; }).join("")}</tr>`;
+    }).join("");
+
+    const rows = [
+      { label: "Status", render: (v) => `<span class="chip ${vStatusChip(v.status)}">${esc(v.status)}</span>` },
+      { label: "Best Unit Price", render: (v) => { const n = metric.price(v); return n == null ? "—" : `<span class="${n === bestPrice ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { label: "MOQ", render: (v) => { const n = metric.moq(v); return n == null ? "—" : `<span class="${n === bestMoq ? "cmp-best" : ""}">${n.toLocaleString()}</span>`; } },
+      { label: "Sample Cost", render: (v) => v.sampleCost ? money(v.sampleCost) : "—" },
+      { label: "Sample Ship · Air", render: (v) => v.sampleShipCA ? money(v.sampleShipCA) : "—" },
+      { label: "Sample Ship · Hawk", render: (v) => v.sampleShipHawk ? money(v.sampleShipHawk) : "—" },
+      { label: "Landed Sample*", render: (v) => { const n = metric.sample(v); return n == null ? "—" : `<span class="${n === bestSample ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { label: "Ocean Freight", render: (v) => { const n = metric.ocean(v); return n == null ? "—" : `<span class="${n === bestOcean ? "cmp-best" : ""}">${money(n)}</span>`; } },
+      { label: "Sample Lead", render: (v) => esc(v.sampleLead) || "—" },
+      { label: "Order Lead", render: (v) => esc(v.orderLead) || "—" },
+      { label: "Point of Contact", render: (v) => esc(v.contactName) || "—" },
+      { label: "Links", render: (v) => [v.linkVendor && `<a href="${esc(safeHref(v.linkVendor))}" target="_blank" rel="noopener">Vendor</a>`, v.linkCatalog && `<a href="${esc(safeHref(v.linkCatalog))}" target="_blank" rel="noopener">Catalog</a>`, v.linkMedia && `<a href="${esc(safeHref(v.linkMedia))}" target="_blank" rel="noopener">Media</a>`].filter(Boolean).join(" · ") || "—" }
+    ];
+    const headCells = vs.map((v) => {
+      const cls = v.status === "Sample Approved" ? " approved" : (/^Rejected/i.test(v.status) ? " rejected" : "");
+      return `<th class="cmp-vhead${cls}"><div class="cmp-vname">${esc(v.vendor) || "—"}</div><div class="cmp-vprod">${esc(v.product) || ""}</div></th>`;
+    }).join("");
+    const bodyRows = rows.map((r) => `<tr><th class="cmp-rowlabel">${r.label}</th>${vs.map((v) => `<td>${r.render(v)}</td>`).join("")}</tr>`).join("");
+    const qtyBlock = qtyKeys.length ? `<tr class="cmp-grouprow"><th class="cmp-rowlabel">Price by Qty</th>${vs.map(() => "<td></td>").join("")}</tr>${qtyRowsHTML}` : "";
+
+    body.innerHTML = `
+      <div class="cmp-chart">
+        <div class="cmp-chart-title">Best unit price by vendor</div>
+        ${bars}
+      </div>
+      <div class="cmp-table-wrap">
+        <table class="cmp-table">
+          <thead><tr><th class="cmp-corner"></th>${headCells}</tr></thead>
+          <tbody>${bodyRows}${qtyBlock}</tbody>
+        </table>
+      </div>
+      <div class="cmp-foot-note">Green = best value in that row. *Landed Sample = sample cost + cheaper of Air / Hawk shipping.</div>`;
+    $("srcCompareOverlay").classList.add("show");
+  }
 
   function wireModals() {
     $("srcItemForm").addEventListener("submit", (e) => {
@@ -3747,6 +3876,8 @@ async function bootstrap() {
     $("rv-revemail3").addEventListener("input", refreshRevEmail);
     $("rv-note").addEventListener("input", refreshRevEmail);
     $("srcReviewOverlay").addEventListener("click", (e) => { if (e.target === $("srcReviewOverlay")) closeReview(); });
+    $("cmp-close").addEventListener("click", closeCompare);
+    $("srcCompareOverlay").addEventListener("click", (e) => { if (e.target === $("srcCompareOverlay")) closeCompare(); });
   }
 
   // ---- Wire up master ----------------------------------------------------
