@@ -3712,7 +3712,8 @@ async function bootstrap() {
     if (_xlsxPromise) return _xlsxPromise;
     _xlsxPromise = new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      // xlsx-js-style: drop-in SheetJS fork that writes cell styles (wrap text, bold, etc.)
+      s.src = "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js";
       s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error("XLSX missing"));
       s.onerror = () => reject(new Error("Failed to load spreadsheet library"));
       document.head.appendChild(s);
@@ -3777,6 +3778,20 @@ async function bootstrap() {
       const ws = XLSX.utils.aoa_to_sheet(aoa);
       ws["!cols"] = [{ wch: 22 }, ...vs.map(() => ({ wch: 30 }))];
       ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: vs.length } }, { s: { r: 1, c: 0 }, e: { r: 1, c: vs.length } }];
+      // Wrap text + top-align every cell so long fields don't clip; bold the headers/labels.
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      for (let r = range.s.r; r <= range.e.r; r++) {
+        for (let c = range.s.c; c <= range.e.c; c++) {
+          const cell = ws[XLSX.utils.encode_cell({ r, c })];
+          if (!cell) continue;
+          cell.s = cell.s || {};
+          cell.s.alignment = { wrapText: true, vertical: "top", horizontal: c === 0 ? "left" : "left" };
+          if (r === 0) cell.s.font = { bold: true, sz: 14 };
+          else if (r === 1) cell.s.font = { italic: true, sz: 10, color: { rgb: "666666" } };
+          else if (r === 3) cell.s.font = { bold: true, sz: 12 };       // vendor header row
+          else if (c === 0) cell.s.font = { bold: true };               // row labels
+        }
+      }
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Comparison");
       XLSX.writeFile(wb, fname + ".xlsx");
