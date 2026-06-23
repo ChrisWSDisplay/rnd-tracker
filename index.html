@@ -3107,6 +3107,7 @@ async function bootstrap() {
   const ICON_MAIL = '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
   const ICON_CHECK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
   const ICON_COMPARE = '<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg>';
+  const ICON_DOWNLOAD = '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
   const ICON_CAMERA = '<svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>';
 
   // ---- Image upload helpers (resize → JPEG data URL, like the Tracker) ----
@@ -3407,7 +3408,7 @@ async function bootstrap() {
         <div class="section-label">Vendor options for this item</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn" id="reqReviewBtn">${reviewBtnLabel}</button>
-          <button class="btn" id="compareBtn">${ICON_COMPARE} Compare vendors</button>
+          <button class="btn" id="compareBtn">${ICON_DOWNLOAD} Download comparison</button>
           <button class="btn" id="copyLinkBtn">${ICON_COPY} Copy link</button>
           <button class="btn primary" id="addVendorBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Vendor</button>
         </div>
@@ -3420,7 +3421,7 @@ async function bootstrap() {
     $("editItemBtn").addEventListener("click", () => openItemModal(item));
     $("addVendorBtn").addEventListener("click", () => openVendorModal(null, id));
     $("reqReviewBtn").addEventListener("click", () => openReviewModal(item));
-    $("compareBtn").addEventListener("click", () => openCompareModal(item.id));
+    $("compareBtn").addEventListener("click", () => downloadComparison(item.id));
     $("sourcingDetail").querySelectorAll("[data-move]").forEach((b) => b.addEventListener("click", () => {
       const target = b.dataset.move;
       saveItem({ ...item, section: target });
@@ -3622,13 +3623,7 @@ async function bootstrap() {
           </div>
         </form>
       </div>
-    <div class="modal-overlay" id="srcLightbox"><img id="lightboxImg" alt="" /></div>
-    <div class="modal-overlay" id="srcCompareOverlay">
-      <div class="modal compare-modal"><h2 id="srcCompareTitle">Compare Vendors</h2>
-        <div id="compareBody"></div>
-        <div class="modal-actions"><div class="left"></div><div class="right"><button type="button" class="btn" id="cmp-close">Close</button></div></div>
-      </div>
-    </div>`;
+    <div class="modal-overlay" id="srcLightbox"><img id="lightboxImg" alt="" /></div>`;
     document.body.appendChild(wrap);
   }
 
@@ -3709,83 +3704,89 @@ async function bootstrap() {
   const closeItem = () => $("srcItemOverlay").classList.remove("show");
   const closeVendor = () => $("srcVendorOverlay").classList.remove("show");
   const closeReview = () => $("srcReviewOverlay").classList.remove("show");
-  const closeCompare = () => $("srcCompareOverlay").classList.remove("show");
 
-  // ---- Vendor comparison chart (per item) --------------------------------
-  function openCompareModal(itemId) {
-    const item = items.find((i) => i.id === itemId); if (!item) return;
-    const vs = vendorsFor(itemId);
-    $("srcCompareTitle").textContent = `Compare Vendors — ${item.name}`;
-    const body = $("compareBody");
-    if (!vs.length) {
-      body.innerHTML = `<div class="empty" style="padding:36px 10px;"><div class="big">No vendors to compare yet.</div>Add a couple of vendor options first.</div>`;
-      $("srcCompareOverlay").classList.add("show"); return;
-    }
+  // ---- Vendor comparison → Excel download --------------------------------
+  let _xlsxPromise = null;
+  function loadSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (_xlsxPromise) return _xlsxPromise;
+    _xlsxPromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error("XLSX missing"));
+      s.onerror = () => reject(new Error("Failed to load spreadsheet library"));
+      document.head.appendChild(s);
+    });
+    return _xlsxPromise;
+  }
+  function safeFileName(s) { return String(s || "comparison").replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80); }
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  const moneyOrDash = (n) => (n != null && n !== "" && !isNaN(n) && Number(n) > 0) ? money(Number(n)) : "—";
 
-    // Landed sample = sample cost + cheaper of Air / Hawk shipping
-    const landedSample = (v) => { const ship = [v.sampleShipCA, v.sampleShipHawk].map(Number).filter((n) => n > 0); return (Number(v.sampleCost) || 0) + (ship.length ? Math.min(...ship) : 0); };
-    const metric = { price: (v) => vendorMin(v), moq: (v) => Number(v.moq) || null, sample: (v) => landedSample(v) || null, ocean: (v) => Number(v.oceanFreight) || null };
-    const bestOf = (fn) => { const xs = vs.map(fn).filter((n) => n != null); return xs.length ? Math.min(...xs) : null; };
-    const bestPrice = bestOf(metric.price), bestMoq = bestOf(metric.moq), bestSample = bestOf(metric.sample), bestOcean = bestOf(metric.ocean);
+  // Build the comparison as a 2-D array (rows × [label, vendor1, vendor2, …])
+  function buildComparisonAOA(item, vs) {
+    const landed = (v) => { const ship = [v.sampleShipCA, v.sampleShipHawk].map(Number).filter((n) => n > 0); const base = Number(v.sampleCost) || 0; const m = ship.length ? Math.min(...ship) : 0; return (base + m) || null; };
+    const linkStr = (v) => [v.linkVendor && ("Vendor: " + v.linkVendor), v.linkCatalog && ("Catalog: " + v.linkCatalog), v.linkMedia && ("Media: " + v.linkMedia)].filter(Boolean).join("  |  ");
 
-    // Bar chart on best unit price
-    const maxPrice = Math.max(...vs.map((v) => metric.price(v) || 0), 1);
-    const bars = vs.map((v) => {
-      const p = metric.price(v);
-      const pct = p ? Math.max(6, Math.round((p / maxPrice) * 100)) : 0;
-      const isBest = p != null && p === bestPrice;
-      return `<div class="cmp-bar-row">
-        <div class="cmp-bar-label">${esc(v.vendor) || "—"}</div>
-        <div class="cmp-bar-track"><div class="cmp-bar-fill${isBest ? " best" : ""}" style="width:${pct}%"></div></div>
-        <div class="cmp-bar-val">${p != null ? money(p) : "—"}</div>
-      </div>`;
-    }).join("");
+    const aoa = [];
+    aoa.push([`Vendor comparison — ${item.name}`]);
+    aoa.push([`Category: ${item.category || "—"}    Target cost: ${item.target ? money(item.target) : "—"}    Generated: ${new Date().toLocaleString()}`]);
+    aoa.push([]);
+    aoa.push(["", ...vs.map((v) => v.vendor || "Unspecified")]);
+    aoa.push(["Product", ...vs.map((v) => v.product || "—")]);
+    aoa.push(["Status", ...vs.map((v) => v.status || "—")]);
+    aoa.push(["Best Unit Price", ...vs.map((v) => moneyOrDash(vendorMin(v)))]);
+    aoa.push(["MOQ", ...vs.map((v) => v.moq ? Number(v.moq).toLocaleString() : "—")]);
 
-    // Distinct qty breaks across all vendors → a row each in the price-by-qty table
+    // Price by quantity — one row per distinct qty break across all vendors
     const qtyKeys = [];
     vs.forEach((v) => (v.costRows || []).forEach((r) => { const k = (r.qty || "").trim() || "—"; if (!qtyKeys.includes(k)) qtyKeys.push(k); }));
     const priceAtQty = (v, qty) => { const r = (v.costRows || []).find((x) => ((x.qty || "").trim() || "—") === qty); return r && r.price ? Number(r.price) : null; };
-    const qtyRowsHTML = qtyKeys.map((qty) => {
-      const vals = vs.map((v) => priceAtQty(v, qty));
-      const valid = vals.filter((n) => n != null);
-      const lo = valid.length ? Math.min(...valid) : null;
-      return `<tr><th class="cmp-rowlabel">Qty ${esc(qty)}</th>${vs.map((v, i) => { const n = vals[i]; return `<td>${n == null ? "—" : `<span class="${n === lo ? "cmp-best" : ""}">${money(n)}</span>`}</td>`; }).join("")}</tr>`;
-    }).join("");
+    qtyKeys.forEach((qty) => aoa.push([`Price @ Qty ${qty}`, ...vs.map((v) => moneyOrDash(priceAtQty(v, qty)))]));
 
-    const rows = [
-      { label: "Status", render: (v) => `<span class="chip ${vStatusChip(v.status)}">${esc(v.status)}</span>` },
-      { label: "Best Unit Price", render: (v) => { const n = metric.price(v); return n == null ? "—" : `<span class="${n === bestPrice ? "cmp-best" : ""}">${money(n)}</span>`; } },
-      { label: "MOQ", render: (v) => { const n = metric.moq(v); return n == null ? "—" : `<span class="${n === bestMoq ? "cmp-best" : ""}">${n.toLocaleString()}</span>`; } },
-      { label: "Sample Cost", render: (v) => v.sampleCost ? money(v.sampleCost) : "—" },
-      { label: "Sample Ship · Air", render: (v) => v.sampleShipCA ? money(v.sampleShipCA) : "—" },
-      { label: "Sample Ship · Hawk", render: (v) => v.sampleShipHawk ? money(v.sampleShipHawk) : "—" },
-      { label: "Landed Sample*", render: (v) => { const n = metric.sample(v); return n == null ? "—" : `<span class="${n === bestSample ? "cmp-best" : ""}">${money(n)}</span>`; } },
-      { label: "Ocean Freight", render: (v) => { const n = metric.ocean(v); return n == null ? "—" : `<span class="${n === bestOcean ? "cmp-best" : ""}">${money(n)}</span>`; } },
-      { label: "Sample Lead", render: (v) => esc(v.sampleLead) || "—" },
-      { label: "Order Lead", render: (v) => esc(v.orderLead) || "—" },
-      { label: "Point of Contact", render: (v) => esc(v.contactName) || "—" },
-      { label: "Links", render: (v) => [v.linkVendor && `<a href="${esc(safeHref(v.linkVendor))}" target="_blank" rel="noopener">Vendor</a>`, v.linkCatalog && `<a href="${esc(safeHref(v.linkCatalog))}" target="_blank" rel="noopener">Catalog</a>`, v.linkMedia && `<a href="${esc(safeHref(v.linkMedia))}" target="_blank" rel="noopener">Media</a>`].filter(Boolean).join(" · ") || "—" }
-    ];
-    const headCells = vs.map((v) => {
-      const cls = v.status === "Sample Approved" ? " approved" : (/^Rejected/i.test(v.status) ? " rejected" : "");
-      return `<th class="cmp-vhead${cls}"><div class="cmp-vname">${esc(v.vendor) || "—"}</div><div class="cmp-vprod">${esc(v.product) || ""}</div></th>`;
-    }).join("");
-    const bodyRows = rows.map((r) => `<tr><th class="cmp-rowlabel">${r.label}</th>${vs.map((v) => `<td>${r.render(v)}</td>`).join("")}</tr>`).join("");
-    const qtyBlock = qtyKeys.length ? `<tr class="cmp-grouprow"><th class="cmp-rowlabel">Price by Qty</th>${vs.map(() => "<td></td>").join("")}</tr>${qtyRowsHTML}` : "";
+    aoa.push(["Sample Cost", ...vs.map((v) => moneyOrDash(v.sampleCost))]);
+    aoa.push(["Sample Ship · Air", ...vs.map((v) => moneyOrDash(v.sampleShipCA))]);
+    aoa.push(["Sample Ship · Hawk", ...vs.map((v) => moneyOrDash(v.sampleShipHawk))]);
+    aoa.push(["Landed Sample", ...vs.map((v) => moneyOrDash(landed(v)))]);
+    aoa.push(["Ocean Freight", ...vs.map((v) => moneyOrDash(v.oceanFreight))]);
+    aoa.push(["Sample Lead Time", ...vs.map((v) => v.sampleLead || "—")]);
+    aoa.push(["Order Lead Time", ...vs.map((v) => v.orderLead || "—")]);
+    aoa.push(["Point of Contact", ...vs.map((v) => v.contactName || "—")]);
+    aoa.push(["Contact Info", ...vs.map((v) => v.contactInfo || "—")]);
+    aoa.push(["Description", ...vs.map((v) => v.description || "—")]);
+    aoa.push(["Comments", ...vs.map((v) => v.comments || "—")]);
+    aoa.push(["Links", ...vs.map((v) => linkStr(v) || "—")]);
+    return aoa;
+  }
 
-    body.innerHTML = `
-      <div class="cmp-chart">
-        <div class="cmp-chart-title">Best unit price by vendor</div>
-        ${bars}
-      </div>
-      <div class="cmp-table-wrap">
-        <table class="cmp-table">
-          <thead><tr><th class="cmp-corner"></th>${headCells}</tr></thead>
-          <tbody>${bodyRows}${qtyBlock}</tbody>
-        </table>
-      </div>
-      <div class="cmp-foot-note">Green = best value in that row. *Landed Sample = sample cost + cheaper of Air / Hawk shipping.</div>`;
-    $("srcCompareOverlay").classList.add("show");
+  async function downloadComparison(itemId) {
+    const item = items.find((i) => i.id === itemId); if (!item) return;
+    const vs = vendorsFor(itemId);
+    if (!vs.length) { toast("No vendors to compare yet — add a couple first."); return; }
+    const aoa = buildComparisonAOA(item, vs);
+    const fname = safeFileName(`Vendor Comparison - ${item.name}`);
+    toast("Building comparison…");
+    try {
+      const XLSX = await loadSheetJS();
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws["!cols"] = [{ wch: 22 }, ...vs.map(() => ({ wch: 30 }))];
+      ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: vs.length } }, { s: { r: 1, c: 0 }, e: { r: 1, c: vs.length } }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Comparison");
+      XLSX.writeFile(wb, fname + ".xlsx");
+      toast("Comparison downloaded.");
+    } catch (e) {
+      // Fallback: CSV (opens in Excel / Google Sheets)
+      const csv = aoa.map((row) => row.map((cell) => { const s = String(cell == null ? "" : cell); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\r\n");
+      downloadBlob(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }), fname + ".csv");
+      toast("Comparison downloaded (CSV).");
+    }
   }
 
   function wireModals() {
@@ -3876,8 +3877,6 @@ async function bootstrap() {
     $("rv-revemail3").addEventListener("input", refreshRevEmail);
     $("rv-note").addEventListener("input", refreshRevEmail);
     $("srcReviewOverlay").addEventListener("click", (e) => { if (e.target === $("srcReviewOverlay")) closeReview(); });
-    $("cmp-close").addEventListener("click", closeCompare);
-    $("srcCompareOverlay").addEventListener("click", (e) => { if (e.target === $("srcCompareOverlay")) closeCompare(); });
   }
 
   // ---- Wire up master ----------------------------------------------------
