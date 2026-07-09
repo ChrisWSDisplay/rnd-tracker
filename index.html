@@ -512,6 +512,7 @@
   }
   /* Each stage band gets its own gradient */
   tr.group-header.web_ready td   { background: linear-gradient(90deg, #16a34a 0%, #15803d 100%); }
+  tr.group-header.awaiting_shipment td { background: linear-gradient(90deg, #0d9488 0%, #0f766e 100%); }
   tr.group-header.launch_prep td { background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%); }
   tr.group-header.production td  { background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%); }
   tr.group-header.spec_order td  { background: linear-gradient(90deg, #7c3aed 0%, #6d28d9 100%); }
@@ -970,6 +971,7 @@
     text-shadow: 0 1px 2px rgba(20,20,50,.28);
   }
   tr.group-header.web_ready td   { background: linear-gradient(100deg, rgba(22,163,74,.92), rgba(21,128,61,.92)); }
+  tr.group-header.awaiting_shipment td { background: linear-gradient(100deg, rgba(13,148,136,.92), rgba(15,118,110,.92)); }
   tr.group-header.launch_prep td { background: linear-gradient(100deg, rgba(59,130,246,.92), rgba(37,99,235,.92)); }
   tr.group-header.production td  { background: linear-gradient(100deg, rgba(99,102,241,.92), rgba(79,70,229,.92)); }
   tr.group-header.spec_order td  { background: linear-gradient(100deg, rgba(139,92,246,.92), rgba(109,40,217,.92)); }
@@ -1860,6 +1862,7 @@
           <select id="f-manual-group">
             <option value="">Auto (by %)</option>
             <option value="web_ready">WEB READY</option>
+            <option value="awaiting_shipment">AWAITING SHIPMENT</option>
             <option value="launch_prep">LAUNCH PREP</option>
             <option value="testing">TESTING PHASE</option>
             <option value="on_order">ON ORDER</option>
@@ -2101,6 +2104,7 @@ const STATUSES = [
 // (Web Ready / Testing Phase / On Order / Pending = the buckets from the existing spreadsheet)
 const STAGE_GROUPS = [
   { key: "web_ready",   label: "WEB READY",              range: "90-98%", min: 90, max: 98 },
+  { key: "awaiting_shipment", label: "AWAITING SHIPMENT", range: "Ready · pending vendor shipment", min: 1000, max: 1000 },
   { key: "launch_prep", label: "LAUNCH PREP",            range: "80-89%", min: 80, max: 89 },
   { key: "production",  label: "PRODUCTION",             range: "60-79%", min: 60, max: 79 },
   { key: "spec_order",  label: "SPEC & ORDER",           range: "40-59%", min: 40, max: 59 },
