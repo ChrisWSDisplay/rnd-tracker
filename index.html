@@ -580,6 +580,7 @@
     transition: all .15s;
   }
   .field textarea { resize: vertical; min-height: 75px; }
+  #f-dimensions { min-height: 160px; }
   .field input:focus,
   .field select:focus,
   .field textarea:focus {
@@ -1900,6 +1901,12 @@
       </div>
       <div class="form-row">
         <div class="field">
+          <label for="f-dimensions">Template Dimensions <span style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:500;">— list every size variation (one per line)</span></label>
+          <textarea id="f-dimensions" maxlength="3000" rows="8" placeholder="e.g.&#10;Small — 24in x 36in&#10;Medium — 33in x 79in&#10;Large — 48in x 96in"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
           <label for="f-comments">Comments</label>
           <textarea id="f-comments" maxlength="2000" placeholder="Notes, blockers, next steps…"></textarea>
         </div>
@@ -2186,6 +2193,7 @@ function openModal(product) {
     document.getElementById("f-tracking").value = product.sampleTracking || "";
     document.getElementById("f-photos").value = (product.photos || []).join("\n");
     document.getElementById("f-comments").value = product.comments || "";
+    document.getElementById("f-dimensions").value = product.templateDimensions || "";
     document.getElementById("f-thumb").value = product.thumbnail || "";
     deleteBtn.style.display = "";
   } else {
@@ -2271,6 +2279,7 @@ form.addEventListener("submit", async (e) => {
               .split(/\n+/).map(s => s.trim()).filter(Boolean),
     cost: parseFloat(document.getElementById("f-cost").value) || 0,
     comments: document.getElementById("f-comments").value.trim(),
+    templateDimensions: document.getElementById("f-dimensions").value.trim(),
     thumbnail: document.getElementById("f-thumb").value || "",
     dateAdded: existing?.dateAdded || now,
     dateUpdated: now,
